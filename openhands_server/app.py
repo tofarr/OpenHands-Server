@@ -3,7 +3,7 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-from .routers import conversations, runtimes, users
+from .routers import conversations, runtimes, settings, users
 
 app = FastAPI(
     title="OpenHands Server",
@@ -23,6 +23,7 @@ app.add_middleware(
 # Include routers
 app.include_router(conversations.router)
 app.include_router(runtimes.router)
+app.include_router(settings.router)
 app.include_router(users.router)
 
 
