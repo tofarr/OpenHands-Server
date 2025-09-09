@@ -29,14 +29,11 @@ def main() -> None:
     args = parser.parse_args()
     
     print(f"OpenHands Server starting on {args.host}:{args.port}")
-    print("This is a placeholder implementation.")
-    print("The actual REST/WebSocket server will be implemented here.")
     
-    # TODO: Implement the actual server using FastAPI and uvicorn
-    # Example:
-    # import uvicorn
-    # from .app import app
-    # uvicorn.run(app, host=args.host, port=args.port)
+    import uvicorn
+    from .app import app
+    
+    uvicorn.run(app, host=args.host, port=args.port)
 
 
 if __name__ == "__main__":
