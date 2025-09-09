@@ -193,3 +193,8 @@ $RECYCLE.BIN/
 *.log
 .coverage
 .pytest_cache/
+
+# Database files
+*.db
+*.sqlite
+*.sqlite3
