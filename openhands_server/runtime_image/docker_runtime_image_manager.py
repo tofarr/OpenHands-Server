@@ -13,6 +13,7 @@ from openhands_server.runtime_image.model import RuntimeImageInfo, RuntimeImageI
 class DockerRuntimeImageManager(RuntimeImageManager):
 
     client: docker.DockerClient = field(default_factory=docker.from_env)
+    image_name_prefix: str = "ohrt-",
 
     async def search_runtime_image_info(image_name__eq = None, page_id = None, limit = 100):
         raise NotImplementedError
