@@ -19,9 +19,23 @@ from openhands_server.runtime_container.model import (
 from openhands_server.runtime_container.runtime_container_manager import (
     RuntimeContainerManager,
 )
+from openhands_server.runtime_image.docker_runtime_image_manager import DockerRuntimeImageManager
 from openhands_server.runtime_image.runtime_image_manager import (
     get_default_runtime_image_manager,
 )
+
+@dataclass
+class VolumeMount:
+    host_path: str
+    container_path: str
+    mode: str = 'rw'
+
+
+@dataclass
+class ExposedPort:
+    """Exposed port. A free port will be found for this and an environment variable set"""
+    name: str
+    description: str
 
 
 @dataclass
@@ -30,6 +44,11 @@ class DockerRuntimeContainerManager(RuntimeContainerManager):
     client: docker.DockerClient = field(default=None)
     container_name_prefix: str = "openhands-runtime-"
     exposed_url_pattern: str = "http://localhost:{port}"
+    runtime_image_manager: DockerRuntimeImageManager = field(default_factory=DockerRuntimeImageManager.get_instance)
+    mounts: list[VolumeMount] = field(default_factory=list)
+    exposed_port: list[ExposedPort] = field(default_factory=lambda: [
+        ExposedPort("APPLICATION_SERVER_PORT", 'The port on which the application server runs within the container')
+    ])
 
     def _get_client(self) -> docker.DockerClient:
         """Get Docker client, creating it if necessary"""

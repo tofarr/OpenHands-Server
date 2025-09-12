@@ -25,7 +25,6 @@ class RuntimeImageInfo(BaseModel):
     command: str
     created_at: datetime
     initial_env: dict[str, str] = Field(default_factory=dict, description="Initial Environment Variables")
-    exposed_ports: dict[int, str] = Field(default_factory=dict, description="Exposed ports to be mapped to endpoint urls in the resulting container")
     working_dir: str = '/openhands/code'
 
 
