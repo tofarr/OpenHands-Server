@@ -2,7 +2,7 @@
 
 from abc import ABC, abstractmethod
 from uuid import UUID
-from openhands import get_impl
+# from openhands import get_impl  # Not available, using direct import instead
 from openhands_server.runtime_image.model import RuntimeImageInfo, RuntimeImageInfoPage
 
 
@@ -39,5 +39,7 @@ def get_default_runtime_image_manager():
     global _runtime_image_manager
     if _runtime_image_manager:
         return _runtime_image_manager
-    _runtime_image_manager = get_impl(RuntimeImageManager)()
+    # Import here to avoid circular imports
+    from openhands_server.runtime_image.docker_runtime_image_manager import DockerRuntimeImageManager
+    _runtime_image_manager = DockerRuntimeImageManager()
     return _runtime_image_manager
