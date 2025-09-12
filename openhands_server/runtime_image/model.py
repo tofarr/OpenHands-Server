@@ -1,11 +1,10 @@
 
 
-from dataclasses import Field
 from datetime import datetime
 from enum import Enum
 from uuid import UUID
 
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 
 
 class RuntimeImageStatus(Enum):
@@ -28,6 +27,6 @@ class RuntimeImageInfo(BaseModel):
     target_num_warm_containers: int = Field(default=0, description="The target number of containers to keep warm for this image")
 
 
-class RuntimeImageInfoPage:
+class RuntimeImageInfoPage(BaseModel):
     items: list[RuntimeImageInfo]
     next_page_id: str | None = None
