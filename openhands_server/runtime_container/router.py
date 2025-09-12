@@ -5,40 +5,42 @@ from fastapi import APIRouter, Depends, HTTPException, status
 
 from openhands import get_impl, get_user_id
 
-from openhands_server.runtime.model import RuntimeInfo, RuntimeInfoPage
-from openhands_server.runtime.runtime_manager import RuntimeManager
+from openhands_server.runtime_container.model import RuntimeContainer, RuntimeContainerPage
+from openhands_server.runtime_container.runtime_container_manager import RuntimeContainerManager
 from openhands_server.utils.success import Success
 
 router = APIRouter(prefix="/runtimes", tags=["runtimes"])
-runtime_manager: RuntimeManager = get_impl(RuntimeManager)()
+runtime_manager: RuntimeContainerManager = get_impl(RuntimeContainerManager)()
 router.lifespan(runtime_manager)
+
+# TODO: Currently a runtime container is only available to the user who created it. In future we could have a more advanced permissions model for sharing
 
 # Read methods
 
 @router.get("/search")
-async def search_runtime_info(page_id: str | None = None, limit: int = 100, user_id: UUID = Depends(get_user_id)) -> RuntimeInfoPage:
+async def search_runtime_containers(page_id: str | None = None, limit: int = 100, user_id: UUID = Depends(get_user_id)) -> RuntimeContainerPage:
     assert limit > 0
     assert limit <= 100
-    return await runtime_manager.search_runtime_info(user_id, page_id, limit)
+    return await runtime_manager.search_runtime_containers(user_id, page_id, limit)
 
 
 @router.get("/{id}")
-async def get_runtime_info(id: UUID, user_id: UUID = Depends(get_user_id)) -> RuntimeInfo:
-    runtime_info = await runtime_manager.get_runtime_info(id)
-    if runtime_info is None or runtime_info.user_id != user_id:
+async def get_runtime_containers(id: UUID, user_id: UUID = Depends(get_user_id)) -> RuntimeContainer:
+    runtime_containers = await runtime_manager.get_runtime_containers(id)
+    if runtime_containers is None or runtime_containers.user_id != user_id:
         raise HTTPException(status.HTTP_404_NOT_FOUND)
-    return runtime_info
+    return runtime_containers
 
 
 @router.get("/")
-async def batch_get_runtimes(ids: list[UUID], user_id: UUID = Depends(get_user_id)) -> list[RuntimeInfo | None]:
+async def batch_get_runtimes(ids: list[UUID], user_id: UUID = Depends(get_user_id)) -> list[RuntimeContainer | None]:
     assert len(ids) < 100
-    runtime_infos = await runtime_manager.batch_get_runtime_info(user_id, ids)
-    runtime_infos = [
-        runtime_info if runtime_info and runtime_info.user_id == user_id else None
-        for runtime_info in runtime_infos
+    runtime_containerss = await runtime_manager.batch_get_runtime_containers(user_id, ids)
+    runtime_containerss = [
+        runtime_containers if runtime_containers and runtime_containers.user_id == user_id else None
+        for runtime_containers in runtime_containerss
     ]
-    return runtime_infos
+    return runtime_containerss
 
 
 # Write Methods

@@ -4,16 +4,16 @@ from uuid import uuid4
 from unittest.mock import Mock, patch, MagicMock
 from datetime import datetime
 
-from openhands_server.runtime.docker_runtime_manager import DockerRuntimeManager
-from openhands_server.runtime.runtime_status import RuntimeStatus
+from openhands_server.runtime.docker_runtime_manager import DockerRuntimeContainerManager
+from openhands_server.runtime.runtime_status import RuntimeContainerStatus
 
 
-class TestDockerRuntimeManager:
-    """Test cases for DockerRuntimeManager"""
+class TestDockerRuntimeContainerManager:
+    """Test cases for DockerRuntimeContainerManager"""
 
     def test_init(self):
-        """Test DockerRuntimeManager initialization"""
-        manager = DockerRuntimeManager(
+        """Test DockerRuntimeContainerManager initialization"""
+        manager = DockerRuntimeContainerManager(
             runtime_name_prefix="test-",
             image_name="test:latest"
         )
@@ -22,14 +22,14 @@ class TestDockerRuntimeManager:
 
     def test_container_name_from_id(self):
         """Test container name generation from runtime ID"""
-        manager = DockerRuntimeManager(runtime_name_prefix="ohrt-")
+        manager = DockerRuntimeContainerManager(runtime_name_prefix="ohrt-")
         runtime_id = uuid4()
         expected_name = f"ohrt-{runtime_id}"
         assert manager._container_name_from_id(runtime_id) == expected_name
 
     def test_runtime_id_from_container_name(self):
         """Test runtime ID extraction from container name"""
-        manager = DockerRuntimeManager(runtime_name_prefix="ohrt-")
+        manager = DockerRuntimeContainerManager(runtime_name_prefix="ohrt-")
         runtime_id = uuid4()
         container_name = f"ohrt-{runtime_id}"
         
@@ -38,7 +38,7 @@ class TestDockerRuntimeManager:
 
     def test_runtime_id_from_invalid_container_name(self):
         """Test runtime ID extraction from invalid container name"""
-        manager = DockerRuntimeManager(runtime_name_prefix="ohrt-")
+        manager = DockerRuntimeContainerManager(runtime_name_prefix="ohrt-")
         
         # Wrong prefix
         assert manager._runtime_id_from_container_name("wrong-prefix-123") is None
@@ -47,20 +47,20 @@ class TestDockerRuntimeManager:
         assert manager._runtime_id_from_container_name("ohrt-invalid-uuid") is None
 
     def test_docker_status_to_runtime_status(self):
-        """Test Docker status to RuntimeStatus conversion"""
-        manager = DockerRuntimeManager()
+        """Test Docker status to RuntimeContainerStatus conversion"""
+        manager = DockerRuntimeContainerManager()
         
-        assert manager._docker_status_to_runtime_status("running") == RuntimeStatus.RUNNING
-        assert manager._docker_status_to_runtime_status("paused") == RuntimeStatus.PAUSED
-        assert manager._docker_status_to_runtime_status("exited") == RuntimeStatus.PAUSED
-        assert manager._docker_status_to_runtime_status("created") == RuntimeStatus.STARTING
-        assert manager._docker_status_to_runtime_status("dead") == RuntimeStatus.ERROR
-        assert manager._docker_status_to_runtime_status("unknown") == RuntimeStatus.ERROR
+        assert manager._docker_status_to_runtime_status("running") == RuntimeContainerStatus.RUNNING
+        assert manager._docker_status_to_runtime_status("paused") == RuntimeContainerStatus.PAUSED
+        assert manager._docker_status_to_runtime_status("exited") == RuntimeContainerStatus.PAUSED
+        assert manager._docker_status_to_runtime_status("created") == RuntimeContainerStatus.STARTING
+        assert manager._docker_status_to_runtime_status("dead") == RuntimeContainerStatus.ERROR
+        assert manager._docker_status_to_runtime_status("unknown") == RuntimeContainerStatus.ERROR
 
     @patch('openhands_server.runtime.docker_runtime_manager.DockerClient')
-    def test_container_to_runtime_info(self, mock_docker_client):
+    def test_container_to_runtime_containers(self, mock_docker_client):
         """Test container to RuntimeInfo conversion"""
-        manager = DockerRuntimeManager()
+        manager = DockerRuntimeContainerManager()
         
         # Mock container
         runtime_id = uuid4()
@@ -75,32 +75,32 @@ class TestDockerRuntimeManager:
             "Created": "2023-01-01T12:00:00.000000Z"
         }
         
-        runtime_info = manager._container_to_runtime_info(mock_container)
+        runtime_containers = manager._container_to_runtime_containers(mock_container)
         
-        assert runtime_info is not None
-        assert runtime_info.id == runtime_id
-        assert runtime_info.user_id == user_id
-        assert runtime_info.status == RuntimeStatus.RUNNING
-        assert runtime_info.url is not None  # Should have URL for running container
+        assert runtime_containers is not None
+        assert runtime_containers.id == runtime_id
+        assert runtime_containers.user_id == user_id
+        assert runtime_containers.status == RuntimeContainerStatus.RUNNING
+        assert runtime_containers.url is not None  # Should have URL for running container
 
     @patch('openhands_server.runtime.docker_runtime_manager.DockerClient')
-    def test_container_to_runtime_info_invalid(self, mock_docker_client):
+    def test_container_to_runtime_containers_invalid(self, mock_docker_client):
         """Test container to RuntimeInfo conversion with invalid data"""
-        manager = DockerRuntimeManager()
+        manager = DockerRuntimeContainerManager()
         
         # Mock container with invalid name
         mock_container = Mock()
         mock_container.name = "invalid-name"
         
-        runtime_info = manager._container_to_runtime_info(mock_container)
-        assert runtime_info is None
+        runtime_containers = manager._container_to_runtime_containers(mock_container)
+        assert runtime_containers is None
         
         # Mock container without user_id label
         mock_container.name = "ohrt-" + str(uuid4())
         mock_container.labels = {}
         
-        runtime_info = manager._container_to_runtime_info(mock_container)
-        assert runtime_info is None
+        runtime_containers = manager._container_to_runtime_containers(mock_container)
+        assert runtime_containers is None
 
     @pytest.mark.asyncio
     @patch('openhands_server.runtime.docker_runtime_manager.DockerClient')
@@ -112,7 +112,7 @@ class TestDockerRuntimeManager:
         mock_container = Mock()
         mock_client.containers.run.return_value = mock_container
         
-        manager = DockerRuntimeManager(client=mock_client, image_name="test:latest")
+        manager = DockerRuntimeContainerManager(client=mock_client, image_name="test:latest")
         user_id = uuid4()
         
         runtime_id = await manager.start_runtime(user_id)
@@ -128,7 +128,7 @@ class TestDockerRuntimeManager:
 
     @pytest.mark.asyncio
     @patch('openhands_server.runtime.docker_runtime_manager.DockerClient')
-    async def test_get_runtime_info_not_found(self, mock_docker_client):
+    async def test_get_runtime_containers_not_found(self, mock_docker_client):
         """Test getting runtime info for non-existent runtime"""
         from docker.errors import NotFound
         
@@ -136,10 +136,10 @@ class TestDockerRuntimeManager:
         mock_docker_client.from_env.return_value = mock_client
         mock_client.containers.get.side_effect = NotFound("Container not found")
         
-        manager = DockerRuntimeManager(client=mock_client)
+        manager = DockerRuntimeContainerManager(client=mock_client)
         runtime_id = uuid4()
         
-        result = await manager.get_runtime_info(runtime_id)
+        result = await manager.get_runtime_containers(runtime_id)
         assert result is None
 
     @pytest.mark.asyncio
@@ -153,7 +153,7 @@ class TestDockerRuntimeManager:
         mock_container.status = "running"
         mock_client.containers.get.return_value = mock_container
         
-        manager = DockerRuntimeManager(client=mock_client)
+        manager = DockerRuntimeContainerManager(client=mock_client)
         runtime_id = uuid4()
         
         result = await manager.delete_runtime(runtime_id)
@@ -172,7 +172,7 @@ class TestDockerRuntimeManager:
         mock_docker_client.from_env.return_value = mock_client
         mock_client.containers.get.side_effect = NotFound("Container not found")
         
-        manager = DockerRuntimeManager(client=mock_client)
+        manager = DockerRuntimeContainerManager(client=mock_client)
         runtime_id = uuid4()
         
         result = await manager.delete_runtime(runtime_id)
@@ -180,8 +180,8 @@ class TestDockerRuntimeManager:
 
     @pytest.mark.asyncio
     async def test_context_manager(self):
-        """Test using DockerRuntimeManager as async context manager"""
-        manager = DockerRuntimeManager()
+        """Test using DockerRuntimeContainerManager as async context manager"""
+        manager = DockerRuntimeContainerManager()
         
         async with manager as mgr:
             assert mgr is manager

@@ -16,22 +16,22 @@ router.lifespan(runtime_image_manager)
 # Read methods
 
 @router.get("/search")
-async def search_runtime_image_info(page_id: str | None = None, limit: int = 100) -> RuntimeImageInfoPage:
+async def search_runtime_images(page_id: str | None = None, limit: int = 100) -> RuntimeImageInfoPage:
     assert limit > 0
     assert limit <= 100
-    return await runtime_image_manager.search_runtime_image_info(page_id=page_id, limit=limit)
+    return await runtime_image_manager.search_runtime_images(page_id=page_id, limit=limit)
 
 
 @router.get("/{id}")
-async def get_runtime_image_info(id: UUID) -> RuntimeImageInfo:
-    runtime_image_info = await runtime_image_manager.get_runtime_image_info(id)
-    if runtime_image_info is None:
+async def get_runtime_images(id: UUID) -> RuntimeImageInfo:
+    runtime_images = await runtime_image_manager.get_runtime_images(id)
+    if runtime_images is None:
         raise HTTPException(status.HTTP_404_NOT_FOUND)
-    return runtime_image_info
+    return runtime_images
 
 
 @router.get("/")
-async def batch_get_runtime_image_info(ids: list[UUID]) -> list[RuntimeImageInfo | None]:
+async def batch_get_runtime_images(ids: list[UUID]) -> list[RuntimeImageInfo | None]:
     assert len(ids) <= 100
-    runtime_image_infos = await runtime_image_manager.batch_get_runtime_image_info(ids)
-    return runtime_image_infos
+    runtime_imagess = await runtime_image_manager.batch_get_runtime_images(ids)
+    return runtime_imagess

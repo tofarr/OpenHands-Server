@@ -2,17 +2,17 @@
 import asyncio
 from datetime import datetime
 from uuid import UUID, uuid4
-from typing import List, Optional
 
 import docker
 from docker.errors import NotFound, APIError
 from pydantic import SecretStr
 
-from openhands_server.runtime.runtime_manager import RuntimeManager
-from openhands_server.runtime.model import RuntimeInfo, RuntimeInfoPage, RuntimeStatus
+from openhands_server.runtime_container.model import RuntimeContainerStatus
+from openhands_server.runtime_container.runtime_container_manager import RuntimeContainerManager
 
 
-class DockerRuntimeManager(RuntimeManager):
+
+class DockerRuntimeContainerManager(RuntimeContainerManager):
 
     def __init__(
             self, 
@@ -37,20 +37,20 @@ class DockerRuntimeManager(RuntimeManager):
         except ValueError:
             return None
 
-    def _docker_status_to_runtime_status(self, docker_status: str) -> RuntimeStatus:
-        """Convert Docker container status to RuntimeStatus"""
+    def _docker_status_to_runtime_status(self, docker_status: str) -> RuntimeContainerStatus:
+        """Convert Docker container status to RuntimeContainerStatus"""
         status_map = {
-            "created": RuntimeStatus.STARTING,
-            "restarting": RuntimeStatus.STARTING,
-            "running": RuntimeStatus.RUNNING,
-            "removing": RuntimeStatus.DELETED,
-            "paused": RuntimeStatus.PAUSED,
-            "exited": RuntimeStatus.PAUSED,
-            "dead": RuntimeStatus.ERROR,
+            "created": RuntimeContainerStatus.STARTING,
+            "restarting": RuntimeContainerStatus.STARTING,
+            "running": RuntimeContainerStatus.RUNNING,
+            "removing": RuntimeContainerStatus.DELETED,
+            "paused": RuntimeContainerStatus.PAUSED,
+            "exited": RuntimeContainerStatus.PAUSED,
+            "dead": RuntimeContainerStatus.ERROR,
         }
-        return status_map.get(docker_status.lower(), RuntimeStatus.ERROR)
+        return status_map.get(docker_status.lower(), RuntimeContainerStatus.ERROR)
 
-    def _container_to_runtime_info(self, container) -> RuntimeInfo | None:
+    def _container_to_runtime_containers(self, container) -> RuntimeInfo | None:
         """Convert Docker container to RuntimeInfo"""
         runtime_id = self._runtime_id_from_container_name(container.name)
         if not runtime_id:
@@ -71,7 +71,7 @@ class DockerRuntimeManager(RuntimeManager):
         # Generate URL and API key for running containers
         url = None
         session_api_key = None
-        if status == RuntimeStatus.RUNNING:
+        if status == RuntimeContainerStatus.RUNNING:
             # In a real implementation, you'd get the actual exposed port and host
             # For now, using a placeholder
             url = f"http://localhost:8080"  # This should be dynamically determined
@@ -89,12 +89,12 @@ class DockerRuntimeManager(RuntimeManager):
             created_at=created_at
         )
 
-    async def search_runtime_info(
+    async def search_runtime_containers(
         self, 
         user_id: UUID | None = None, 
         page_id: str | None = None, 
         limit: int = 100
-    ) -> RuntimeInfoPage:
+    ) -> RuntimeContainerPage:
         """Search for runtimes"""
         def _search():
             # Build filters for Docker containers
@@ -103,15 +103,15 @@ class DockerRuntimeManager(RuntimeManager):
                 filters["label"] = f"user_id={user_id}"
 
             containers = self.client.containers.list(all=True, filters=filters)
-            runtime_infos = []
+            runtime_containerss = []
             
             for container in containers:
-                runtime_info = self._container_to_runtime_info(container)
-                if runtime_info:
-                    runtime_infos.append(runtime_info)
+                runtime_containers = self._container_to_runtime_containers(container)
+                if runtime_containers:
+                    runtime_containerss.append(runtime_containers)
 
             # Sort by creation time (newest first)
-            runtime_infos.sort(key=lambda x: x.created_at, reverse=True)
+            runtime_containerss.sort(key=lambda x: x.created_at, reverse=True)
 
             # Handle pagination
             start_idx = 0
@@ -122,28 +122,28 @@ class DockerRuntimeManager(RuntimeManager):
                     start_idx = 0
 
             end_idx = start_idx + limit
-            page_items = runtime_infos[start_idx:end_idx]
+            page_items = runtime_containerss[start_idx:end_idx]
             
             # Calculate next page ID
-            next_page_id = str(end_idx) if end_idx < len(runtime_infos) else ""
+            next_page_id = str(end_idx) if end_idx < len(runtime_containerss) else ""
 
-            return RuntimeInfoPage(items=page_items, next_page_id=next_page_id)
+            return RuntimeContainerPage(items=page_items, next_page_id=next_page_id)
 
         return await asyncio.get_event_loop().run_in_executor(None, _search)
 
-    async def get_runtime_info(self, id: UUID) -> RuntimeInfo | None:
+    async def get_runtime_containers(self, id: UUID) -> RuntimeInfo | None:
         """Get a single runtime info. Return None if the runtime was not found."""
         def _get():
             container_name = self._container_name_from_id(id)
             try:
                 container = self.client.containers.get(container_name)
-                return self._container_to_runtime_info(container)
+                return self._container_to_runtime_containers(container)
             except NotFound:
                 return None
 
         return await asyncio.get_event_loop().run_in_executor(None, _get)
 
-    async def batch_get_runtime_info(self, ids: list[UUID]) -> list[RuntimeInfo | None]:
+    async def batch_get_runtime_containers(self, ids: list[UUID]) -> list[RuntimeInfo | None]:
         """Get a batch of runtime info. Return None for any runtime which was not found."""
         def _batch_get():
             results = []
@@ -151,8 +151,8 @@ class DockerRuntimeManager(RuntimeManager):
                 container_name = self._container_name_from_id(runtime_id)
                 try:
                     container = self.client.containers.get(container_name)
-                    runtime_info = self._container_to_runtime_info(container)
-                    results.append(runtime_info)
+                    runtime_containers = self._container_to_runtime_containers(container)
+                    results.append(runtime_containers)
                 except NotFound:
                     results.append(None)
             return results

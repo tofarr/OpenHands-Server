@@ -14,15 +14,15 @@ class RuntimeImageManager(ABC):
     """
 
     @abstractmethod
-    async def search_runtime_image_info(image_name__eq: str | None = None, page_id: str | None = None, limit: int = 100) -> RuntimeImageInfoPage:
+    async def search_runtime_images(image_name__eq: str | None = None, page_id: str | None = None, limit: int = 100) -> RuntimeImageInfoPage:
         """Search for runtimes"""
 
     @abstractmethod
-    async def get_runtime_image_info(id: str) -> RuntimeImageInfo | None:
+    async def get_runtime_images(id: str) -> RuntimeImageInfo | None:
         """Get a single runtime info. Return None if the runtime was not found."""
 
     @abstractmethod
-    async def batch_get_runtime_image_info(ids: list[str]) -> list[RuntimeImageInfo | None]:
+    async def batch_get_runtime_images(ids: list[str]) -> list[RuntimeImageInfo | None]:
         """Get a batch of runtime info. Return None for any runtime which was not found."""
 
     async def __aenter__():

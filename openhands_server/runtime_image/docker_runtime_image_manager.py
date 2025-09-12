@@ -22,7 +22,7 @@ class DockerRuntimeImageManager(RuntimeImageManager):
     exposed_ports: dict[int, str] = field(default_factory=dict, description="Exposed ports to be mapped to endpoint urls in the resulting container")
     working_dir: str = '/openhands/code'
 
-    def _docker_image_to_runtime_image_info(self, image) -> RuntimeImageInfo:
+    def _docker_image_to_runtime_images(self, image) -> RuntimeImageInfo:
         """Convert a Docker image to RuntimeImageInfo"""
         # Extract repository and tag from image tags
         # Use the first tag if multiple tags exist, or use the image ID if no tags
@@ -48,7 +48,7 @@ class DockerRuntimeImageManager(RuntimeImageManager):
             working_dir=self.working_dir
         )
 
-    async def search_runtime_image_info(self, image_name__eq: str | None = None, page_id: str | None = None, limit: int = 100) -> RuntimeImageInfoPage:
+    async def search_runtime_images(self, image_name__eq: str | None = None, page_id: str | None = None, limit: int = 100) -> RuntimeImageInfoPage:
         """Search for runtime images"""
         try:
             # If image_name__eq is provided, search for that specific image
@@ -68,7 +68,7 @@ class DockerRuntimeImageManager(RuntimeImageManager):
                 if image.tags:
                     for tag in image.tags:
                         if tag.startswith(self.repository):
-                            runtime_images.append(self._docker_image_to_runtime_image_info(image))
+                            runtime_images.append(self._docker_image_to_runtime_images(image))
                             break  # Only add once per image, even if multiple matching tags
             
             # Apply pagination
@@ -96,19 +96,19 @@ class DockerRuntimeImageManager(RuntimeImageManager):
             # Return empty page if there's an API error
             return RuntimeImageInfoPage(items=[], next_page_id=None)
 
-    async def get_runtime_image_info(self, id: str) -> RuntimeImageInfo | None:
+    async def get_runtime_images(self, id: str) -> RuntimeImageInfo | None:
         """Get a single runtime image info by ID"""
         try:
             # Try to get the image by ID (which should be repository:tag)
             image = self.client.images.get(id)
-            return self._docker_image_to_runtime_image_info(image)
+            return self._docker_image_to_runtime_images(image)
         except (NotFound, APIError):
             return None
 
-    async def batch_get_runtime_image_info(self, ids: list[str]) -> list[RuntimeImageInfo | None]:
+    async def batch_get_runtime_images(self, ids: list[str]) -> list[RuntimeImageInfo | None]:
         """Get a batch of runtime image info"""
         results = []
         for image_id in ids:
-            result = await self.get_runtime_image_info(image_id)
+            result = await self.get_runtime_images(image_id)
             results.append(result)
         return results
