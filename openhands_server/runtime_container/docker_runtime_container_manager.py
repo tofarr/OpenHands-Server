@@ -30,3 +30,4 @@ class DockerRuntimeContainerManager(RuntimeContainerManager):
     exposed_port: list[ExposedPort] = field(default_factory=lambda: [
         ExposedPort("APPLICATION_SERVER_PORT", 'The port on which the application server runs within the container')
     ])
+    exposed_url_pattern: str = "http://localhost:{port}"
