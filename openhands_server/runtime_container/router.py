@@ -5,8 +5,7 @@ from fastapi import APIRouter, Depends, HTTPException, status
 
 from openhands import get_impl, get_user_id
 
-from openhands_server.runtime.page import RuntimeInfoPage
-from openhands_server.runtime.runtime_info import RuntimeInfo
+from openhands_server.runtime.model import RuntimeInfo, RuntimeInfoPage
 from openhands_server.runtime.runtime_manager import RuntimeManager
 from openhands_server.utils.success import Success
 

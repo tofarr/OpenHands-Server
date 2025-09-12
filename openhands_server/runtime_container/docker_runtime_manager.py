@@ -9,9 +9,7 @@ from docker.errors import NotFound, APIError
 from pydantic import SecretStr
 
 from openhands_server.runtime.runtime_manager import RuntimeManager
-from openhands_server.runtime.runtime_info import RuntimeInfo
-from openhands_server.runtime.runtime_status import RuntimeStatus
-from openhands_server.runtime.page import RuntimeInfoPage
+from openhands_server.runtime.model import RuntimeInfo, RuntimeInfoPage, RuntimeStatus
 
 
 class DockerRuntimeManager(RuntimeManager):

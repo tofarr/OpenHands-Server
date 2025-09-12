@@ -3,8 +3,7 @@
 from abc import ABC, abstractmethod
 from uuid import UUID
 
-from openhands_server.runtime.page import RuntimeInfoPage
-from openhands_server.runtime.runtime_info import RuntimeInfo
+from openhands_server.runtime.model import RuntimeInfo, RuntimeInfoPage
 
 
 class RuntimeManager(ABC):
