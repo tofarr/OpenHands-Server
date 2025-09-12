@@ -42,7 +42,20 @@ class RuntimeContainerManager(ABC):
     async def __aexit__():
         """Stop using this runtime container manager"""
 
-    @abstractmethod
     @classmethod
-    def get_instance() -> "RuntimeContainerManager":
+    @abstractmethod
+    def get_instance(cls) -> "RuntimeContainerManager":
         """ Get an instance of runtime container manager """
+
+
+_runtime_container_manager = None
+
+
+def get_default_runtime_container_manager():
+    global _runtime_container_manager
+    if _runtime_container_manager:
+        return _runtime_container_manager
+    # Import here to avoid circular imports
+    from openhands_server.runtime_container.docker_runtime_container_manager import DockerRuntimeContainerManager
+    _runtime_container_manager = DockerRuntimeContainerManager()
+    return _runtime_container_manager
