@@ -4,7 +4,7 @@ from datetime import datetime
 from uuid import UUID, uuid4
 from typing import List, Optional
 
-from docker import DockerClient
+import docker
 from docker.errors import NotFound, APIError
 from pydantic import SecretStr
 
@@ -18,11 +18,11 @@ class DockerRuntimeManager(RuntimeManager):
 
     def __init__(
             self, 
-            client: DockerClient | None = None,
+            client: docker.DockerClient | None = None,
             runtime_name_prefix: str = "ohrt-",
             image_name: str = "ubuntu:latest",
         ):
-        self.client = client or DockerClient.from_env()
+        self.client = client or docker.DockerClient.from_env()
         self.runtime_name_prefix = runtime_name_prefix
         self.image_name = image_name
 
