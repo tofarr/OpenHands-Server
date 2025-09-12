@@ -3,13 +3,13 @@
 from abc import ABC, abstractmethod
 from uuid import UUID
 
-from openhands_server.runtime_container.model import RuntimeContainerInfo, RuntimeContainerInfoPage
+from openhands_server.runtime_container.model import RuntimeContainerInfo, RuntimeContainerPage
 
 
 class RuntimeContainerManager(ABC):
 
     @abstractmethod
-    async def search_runtime_containers(user_id: UUID | None = None, page_id: str | None = None, limit: int = 100) -> RuntimeContainerInfoPage:
+    async def search_runtime_containers(user_id: UUID | None = None, page_id: str | None = None, limit: int = 100) -> RuntimeContainerPage:
         """Search for runtime containers"""
 
     @abstractmethod

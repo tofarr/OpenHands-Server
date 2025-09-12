@@ -14,11 +14,11 @@ class RuntimeContainerStatus(Enum):
     ERROR = 'ERROR'
 
 
-class RuntimeContainer(BaseModel):
+class RuntimeContainerInfo(BaseModel):
     """Information about a runtime"""
     id: UUID
     user_id: str
-    runtime_image_id: UUID
+    runtime_image_id: str
     status: RuntimeContainerStatus
     url: str | None = Field(description="URL to access runtime. Runtimes with a status STARTING / PAUSED / DELETED / ERROR runtimes will not have a url")
     session_api_key: SecretStr | None = Field(description="URL to access runtime, to be added as an `X-Session-API-Key` header in each request. Runtimes with a status STARTING / PAUSED / DELETED / ERROR runtimes will not have a key")
@@ -26,5 +26,5 @@ class RuntimeContainer(BaseModel):
 
 
 class RuntimeContainerPage(BaseModel):
-    items: list[RuntimeContainer]
+    items: list[RuntimeContainerInfo]
     next_page_id: str | None = None
