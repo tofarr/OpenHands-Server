@@ -9,7 +9,7 @@ from openhands_server.runtime_container.model import RuntimeContainer, RuntimeCo
 from openhands_server.runtime_container.runtime_container_manager import RuntimeContainerManager
 from openhands_server.utils.success import Success
 
-router = APIRouter(prefix="/runtimes", tags=["runtimes"])
+router = APIRouter(prefix="/runtime-containers")
 runtime_manager: RuntimeContainerManager = get_impl(RuntimeContainerManager)()
 router.lifespan(runtime_manager)
 
