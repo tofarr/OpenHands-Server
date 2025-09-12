@@ -6,7 +6,10 @@ from openhands_server.runtime_image.runtime_image_manager import RuntimeImageMan
 
 @dataclass
 class DockerRuntimeImageManager(RuntimeImageManager):
-    """Runtime manager for docker images. By default, all images with the name given are loaded and returned (They may have different ta)"""
+    """
+    Runtime manager for docker images. By default, all images with the repository given are loaded and returned (They may have different tag)
+    The combination of the repository and tag is treated as the id in the resulting image.
+    """
 
     client: docker.DockerClient = field(default_factory=docker.from_env)
     repository: str = "ghcr.io/all-hands-ai/runtime"
