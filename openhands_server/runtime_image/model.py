@@ -16,7 +16,7 @@ class RuntimeImageStatus(Enum):
 
 class RuntimeImageInfo(BaseModel):
     """ A runtime image is a template for creating a runtime, analogous to a docker image """
-    id: UUID
+    id: str
     image_name: str
     command: str
     created_at: datetime

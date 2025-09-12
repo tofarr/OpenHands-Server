@@ -18,11 +18,11 @@ class RuntimeImageManager(ABC):
         """Search for runtimes"""
 
     @abstractmethod
-    async def get_runtime_image_info(id: UUID) -> RuntimeImageInfo | None:
+    async def get_runtime_image_info(id: str) -> RuntimeImageInfo | None:
         """Get a single runtime info. Return None if the runtime was not found."""
 
     @abstractmethod
-    async def batch_get_runtime_image_info(ids: list[UUID]) -> list[RuntimeImageInfo | None]:
+    async def batch_get_runtime_image_info(ids: list[str]) -> list[RuntimeImageInfo | None]:
         """Get a batch of runtime info. Return None for any runtime which was not found."""
 
     async def __aenter__():
