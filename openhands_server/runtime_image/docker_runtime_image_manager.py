@@ -14,7 +14,7 @@ class DockerRuntimeImageManager(RuntimeImageManager):
 
     client: docker.DockerClient = field(default_factory=docker.from_env)
     image_name: str = "ubuntu:latest"
-    image_name_prefix: str = "openhands-runtime-"
+    image_name_prefix: str = "ohrt-"
 
     def _image_name_from_id(self, runtime_image_id: UUID) -> str:
         """Generate image name from runtime image ID"""

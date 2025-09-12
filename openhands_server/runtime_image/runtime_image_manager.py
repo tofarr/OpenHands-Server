@@ -2,14 +2,19 @@
 
 from abc import ABC, abstractmethod
 from uuid import UUID
-
+from openhands import get_impl
 from openhands_server.runtime_image.model import RuntimeImageInfo, RuntimeImageInfoPage
 
 
 class RuntimeImageManager(ABC):
+    """
+    Manager for runtime images. At present this is read only. The plan is that later this class will allow building
+    and deleting runtime images and limiting access of images by user and group. It would also be nice to be able
+    to set the desired number of warm containers for an image and scale this up and down.
+    """
 
     @abstractmethod
-    async def search_runtime_image_info(user_id: UUID | None = None, page_id: str | None = None, limit: int = 100) -> RuntimeImageInfoPage:
+    async def search_runtime_image_info(image_name__eq: str | None = None, page_id: str | None = None, limit: int = 100) -> RuntimeImageInfoPage:
         """Search for runtimes"""
 
     @abstractmethod
@@ -27,16 +32,12 @@ class RuntimeImageManager(ABC):
         """Stop using this runtime image manager"""
 
 
-class MutableRuntimeImageManager(RuntimeImageManager, ABC):
+_runtime_image_manager = None
 
-    @abstractmethod
-    async def build_runtime_image(user_id: UUID, target_num_warm_containers: int = 0) -> UUID:
-        """Begin the process of building a runtime image. Return the UUID of the new runtime image """
 
-    @abstractmethod
-    async def update_target_num_warm_containers(id: UUID, target_num_warm_containers: int = 0) -> UUID:
-        """Begin the process of building a runtime image. Return the UUID of the new runtime image """
-
-    @abstractmethod
-    async def delete_runtime_image(id: UUID) -> bool:
-        """Begin the process of deleting a runtime image (Which may involve stopping any associated containers first). Return False if the runtime did not exist"""
+def get_default_runtime_image_manager():
+    global _runtime_image_manager
+    if _runtime_image_manager:
+        return _runtime_image_manager
+    _runtime_image_manager = get_impl(RuntimeImageManager)()
+    return _runtime_image_manager
