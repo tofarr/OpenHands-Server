@@ -5,8 +5,13 @@ from openhands_server.runtime.runtime_manager import RuntimeManager
 
 class DockerRuntimeManager(RuntimeManager):
 
-    def __init__(self, client: DockerClient | None = None):
+    def __init__(
+            self, 
+            client: DockerClient | None = None,
+            runtime_name_prefix: str = "ohrt-",
+        ):
         self.client = client | DockerClient.from_env()
+        self.runtime_name_prefix = runtime_name_prefix
 
     async def search_runtime_info(user_id = None, page_id = None, limit = 100):
         raise NotImplementedError
