@@ -16,11 +16,11 @@ from openhands_server.runtime_container.model import (
     RuntimeContainerPage,
     RuntimeContainerStatus,
 )
-from openhands_server.runtime_container.runtime_container_manager import (
+from openhands_server.runtime_container.manager import (
     RuntimeContainerManager,
 )
 from openhands_server.runtime_image.docker_runtime_image_manager import DockerRuntimeImageManager
-from openhands_server.runtime_image.runtime_image_manager import (
+from openhands_server.runtime_image.manager import (
     get_default_runtime_image_manager,
 )
 
@@ -210,7 +210,7 @@ class DockerRuntimeContainerManager(RuntimeContainerManager):
         """Start a new runtime container"""
         # Get runtime image info
         runtime_image_manager = get_default_runtime_image_manager()
-        runtime_image = await runtime_image_manager.get_runtime_images(runtime_image_id)
+        runtime_image = await runtime_image_manager.get_runtime_image(runtime_image_id)
         
         if runtime_image is None:
             raise ValueError(f"Runtime image {runtime_image_id} not found")

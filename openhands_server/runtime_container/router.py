@@ -1,12 +1,12 @@
-"""Runtimes router for OpenHands Server."""
+"""Runtime Containers router for OpenHands Server."""
 
 from uuid import UUID
 from fastapi import APIRouter, Depends, HTTPException, status
 
 from openhands import get_impl, get_user_id
 
-from openhands_server.runtime_container.model import RuntimeContainer, RuntimeContainerPage
-from openhands_server.runtime_container.runtime_container_manager import RuntimeContainerManager
+from openhands_server.runtime_container.model import RuntimeContainerInfo, RuntimeContainerPage
+from openhands_server.runtime_container.manager import RuntimeContainerManager
 from openhands_server.utils.success import Success
 
 router = APIRouter(prefix="/runtime-containers")
@@ -25,7 +25,7 @@ async def search_runtime_containers(page_id: str | None = None, limit: int = 100
 
 
 @router.get("/{id}")
-async def get_runtime_containers(id: UUID, user_id: UUID = Depends(get_user_id)) -> RuntimeContainer:
+async def get_runtime_containers(id: UUID, user_id: UUID = Depends(get_user_id)) -> RuntimeContainerInfo:
     runtime_containers = await runtime_manager.get_runtime_containers(id)
     if runtime_containers is None or runtime_containers.user_id != user_id:
         raise HTTPException(status.HTTP_404_NOT_FOUND)
@@ -33,7 +33,7 @@ async def get_runtime_containers(id: UUID, user_id: UUID = Depends(get_user_id))
 
 
 @router.get("/")
-async def batch_get_runtimes(ids: list[UUID], user_id: UUID = Depends(get_user_id)) -> list[RuntimeContainer | None]:
+async def batch_get_runtimes(ids: list[UUID], user_id: UUID = Depends(get_user_id)) -> list[RuntimeContainerInfo | None]:
     assert len(ids) < 100
     runtime_containerss = await runtime_manager.batch_get_runtime_containers(user_id, ids)
     runtime_containerss = [

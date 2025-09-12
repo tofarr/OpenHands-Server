@@ -18,7 +18,7 @@ class RuntimeImageManager(ABC):
         """Search for runtimes"""
 
     @abstractmethod
-    async def get_runtime_images(id: str) -> RuntimeImageInfo | None:
+    async def get_runtime_image(id: str) -> RuntimeImageInfo | None:
         """Get a single runtime info. Return None if the runtime was not found."""
 
     @abstractmethod

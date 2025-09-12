@@ -1,3 +1,4 @@
+from dataclasses import dataclass, field
 import uuid
 from typing import Dict
 
@@ -9,30 +10,28 @@ from openhands.sdk.logger import get_logger
 logger = get_logger(__name__)
 
 
+@dataclass
 class PubSub:
     """A subscription manager that extends ConversationCallbackType functionality.
     This class maintains a dictionary of UUIDs to ConversationCallbackType instances
     and provides methods to subscribe/unsubscribe callbacks. When invoked, it calls
     all registered callbacks with proper error handling.
     """
+    _callbacks: dict[uuid.UUID, AsyncConversationCallback] = field(default_factory=dict)
 
-    def __init__(self) -> None:
-        """Initialize the subscription manager with an empty callback registry."""
-        self._callbacks: Dict[str, AsyncConversationCallback] = {}
-
-    def subscribe(self, callback: AsyncConversationCallback) -> str:
+    def subscribe(self, callback: AsyncConversationCallback) -> UUID:
         """Subscribe a callback and return its UUID for later unsubscription.
         Args:
             callback: The callback function to register
         Returns:
             str: UUID that can be used to unsubscribe this callback
         """
-        callback_id = str(uuid.uuid4())
+        callback_id = uuid.uuid4()
         self._callbacks[callback_id] = callback
         logger.debug(f"Subscribed callback with ID: {callback_id}")
         return callback_id
 
-    def unsubscribe(self, callback_id: str) -> bool:
+    def unsubscribe(self, callback_id: UUID) -> bool:
         """Unsubscribe a callback by its UUID.
         Args:
             callback_id: The UUID returned by subscribe()

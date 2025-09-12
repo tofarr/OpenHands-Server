@@ -1,4 +1,4 @@
-"""Runtimes router for OpenHands Server."""
+"""Runtime Images router for OpenHands Server."""
 
 from uuid import UUID
 from fastapi import APIRouter, Depends, HTTPException, status
@@ -6,7 +6,7 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from openhands import get_user_id
 
 from openhands_server.runtime_image.model import RuntimeImageInfo, RuntimeImageInfoPage
-from openhands_server.runtime_image.runtime_image_manager import RuntimeImageManager, get_default_runtime_image_manager
+from openhands_server.runtime_image.manager import RuntimeImageManager, get_default_runtime_image_manager
 from openhands_server.utils.success import Success
 
 router = APIRouter(prefix="/runtime-images")
@@ -23,8 +23,8 @@ async def search_runtime_images(page_id: str | None = None, limit: int = 100) ->
 
 
 @router.get("/{id}")
-async def get_runtime_images(id: UUID) -> RuntimeImageInfo:
-    runtime_images = await runtime_image_manager.get_runtime_images(id)
+async def get_runtime_image(id: UUID) -> RuntimeImageInfo:
+    runtime_images = await runtime_image_manager.get_runtime_image(id)
     if runtime_images is None:
         raise HTTPException(status.HTTP_404_NOT_FOUND)
     return runtime_images

@@ -4,7 +4,7 @@ from openhands.sdk import LLM, Tool
 from openhands.tools import BashTool, FileEditorTool, TaskTrackerTool
 from pydantic import BaseModel
 
-from openhands_server.models.tool import ToolRequest
+from openhands_server.local_conversation.tool import ToolRequest
 
 
 class AgentRequest(BaseModel):

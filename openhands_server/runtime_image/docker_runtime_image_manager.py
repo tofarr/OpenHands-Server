@@ -4,7 +4,7 @@ from datetime import datetime
 from typing import List, Optional
 import docker
 from docker.errors import NotFound, APIError
-from openhands_server.runtime_image.runtime_image_manager import RuntimeImageManager
+from openhands_server.runtime_image.manager import RuntimeImageManager
 from openhands_server.runtime_image.model import RuntimeImageInfo, RuntimeImageInfoPage
 
 
@@ -94,7 +94,7 @@ class DockerRuntimeImageManager(RuntimeImageManager):
             # Return empty page if there's an API error
             return RuntimeImageInfoPage(items=[], next_page_id=None)
 
-    async def get_runtime_images(self, id: str) -> RuntimeImageInfo | None:
+    async def get_runtime_image(self, id: str) -> RuntimeImageInfo | None:
         """Get a single runtime image info by ID"""
         try:
             # Try to get the image by ID (which should be repository:tag)
@@ -107,7 +107,7 @@ class DockerRuntimeImageManager(RuntimeImageManager):
         """Get a batch of runtime image info"""
         results = []
         for image_id in ids:
-            result = await self.get_runtime_images(image_id)
+            result = await self.get_runtime_image(image_id)
             results.append(result)
         return results
 
