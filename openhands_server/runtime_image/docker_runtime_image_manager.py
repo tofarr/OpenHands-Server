@@ -19,7 +19,12 @@ class DockerRuntimeImageManager(RuntimeImageManager):
     repository: str = "ghcr.io/all-hands-ai/runtime"
     command: str = "python -u -m openhands_server.runtime"
     initial_env: dict[str, str] = field(default_factory=dict)
-    exposed_ports: dict[int, str] = field(default_factory=dict, description="Exposed ports to be mapped to endpoint urls in the resulting container")
+    exposed_ports: dict[int, str] = field(description="Exposed ports to be mapped to endpoint urls in the resulting container", default_factory=lambda: {
+        3000: "Application server port",
+        #3001: "VSCode Port",
+        #3002: "Work Port 1",
+        #3003: "Work Port 2"
+    })
     working_dir: str = '/openhands/code'
 
     def _docker_image_to_runtime_images(self, image) -> RuntimeImageInfo:
@@ -112,3 +117,7 @@ class DockerRuntimeImageManager(RuntimeImageManager):
             result = await self.get_runtime_images(image_id)
             results.append(result)
         return results
+
+    @classmethod
+    def get_instance(cls) -> "RuntimeImageManager":
+        return DockerRuntimeImageManager()

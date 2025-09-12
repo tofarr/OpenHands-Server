@@ -21,7 +21,7 @@ class RuntimeContainerManager(ABC):
         """Get a batch of runtime container info. Return None for any runtime container which was not found."""
 
     @abstractmethod
-    async def start_runtime_container(user_id: UUID) -> UUID:
+    async def start_runtime_container(user_id: UUID, runtime_image_id: str) -> UUID:
         """Begin the process of starting a runtime. Return the UUID of the new runtime """
 
     @abstractmethod
@@ -41,3 +41,8 @@ class RuntimeContainerManager(ABC):
 
     async def __aexit__():
         """Stop using this runtime container manager"""
+
+    @abstractmethod
+    @classmethod
+    def get_instance() -> "RuntimeContainerManager":
+        """ Get an instance of runtime container manager """
