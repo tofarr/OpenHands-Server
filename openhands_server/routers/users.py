@@ -9,12 +9,6 @@ from ..models.user import User
 router = APIRouter(prefix="/users", tags=["users"])
 
 
-@router.get("/hello")
-async def hello_users():
-    """Hello world endpoint for users router."""
-    return {"message": "Hello from Users router!", "router": "users"}
-
-
 @router.get("/", response_model=List[User])
 async def get_users():
     """Get all users."""

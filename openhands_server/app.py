@@ -3,7 +3,7 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-from .routers import conversations, runtimes, settings, users
+from .routers import conversation, runtime, settings, users
 
 app = FastAPI(
     title="OpenHands Server",
@@ -21,11 +21,8 @@ app.add_middleware(
 )
 
 # Include routers
-app.include_router(conversations.router)
-app.include_router(runtimes.router)
-app.include_router(settings.router)
-app.include_router(users.router)
-
+app.include_router(conversation.router)
+app.include_router(runtime.router)
 
 @app.get("/")
 async def root():
@@ -36,9 +33,3 @@ async def root():
         "docs": "/docs",
         "redoc": "/redoc"
     }
-
-
-@app.get("/hello")
-async def hello_world():
-    """Hello world endpoint for the main app."""
-    return {"message": "Hello from OpenHands Server!", "router": "main"}

@@ -6,7 +6,7 @@ from openhands.tools import BashTool, FileEditorTool, TaskTrackerTool
 
 
 class ToolRequest(BaseModel, ABC):
-    """ A request to create a tool for use in an LLM. """
+    """ A request to create a tool for use in an LLM."""
     
     @abstractmethod
     def create_tool(self) -> Tool:

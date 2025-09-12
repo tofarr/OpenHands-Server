@@ -17,14 +17,15 @@ classifiers = [
   "Programming Language :: Python :: 3.13",
 ]
 dependencies = [
-  "openhands-sdk @ git+https://github.com/All-Hands-AI/agent-sdk.git@585d4779b188694e99127431db51190db19e4352#subdirectory=openhands/sdk",
-  "openhands-tools @ git+https://github.com/All-Hands-AI/agent-sdk.git@585d4779b188694e99127431db51190db19e4352#subdirectory=openhands/tools",
+  "openhands-sdk @ git+https://github.com/All-Hands-AI/agent-sdk.git@b3ddfb3468c22a37fbb87d96323914d23bacb4ed#subdirectory=openhands/sdk",
+  "openhands-tools @ git+https://github.com/All-Hands-AI/agent-sdk.git@b3ddfb3468c22a37fbb87d96323914d23bacb4ed#subdirectory=openhands/tools",
   "fastapi>=0.104.0",
-  "uvicorn>=0.24.0",
+  "uvicorn>=0.31.1",
   "websockets>=12.0",
   "pydantic>=2.0.0",
   "sqlalchemy>=2.0.0",
   "alembic>=1.13.0",
+  "docker (>=7.1.0,<8.0.0)",
 ]
 
 optional-dependencies.dev = [
@@ -60,14 +61,14 @@ packages = [ { include = "openhands_server" } ]
 
 [tool.poetry.dependencies]
 python = "^3.12"
-fastapi = "^0.104.0"
-uvicorn = "^0.24.0"
-websockets = "^12.0"
-pydantic = "^2.0.0"
-sqlalchemy = "^2.0.0"
-alembic = "^1.13.0"
-openhands-sdk = { git = "https://github.com/All-Hands-AI/agent-sdk.git", rev = "585d4779b188694e99127431db51190db19e4352", subdirectory = "openhands/sdk" }
-openhands-tools = { git = "https://github.com/All-Hands-AI/agent-sdk.git", rev = "585d4779b188694e99127431db51190db19e4352", subdirectory = "openhands/tools" }
+fastapi = ">=0.104.0"
+uvicorn = ">=0.31.1"
+websockets = ">=12.0"
+pydantic = ">=2.0.0"
+sqlalchemy = ">=2.0.0"
+alembic = ">=1.13.0"
+openhands-sdk = { git = "https://github.com/All-Hands-AI/agent-sdk.git", rev = "b3ddfb3468c22a37fbb87d96323914d23bacb4ed", subdirectory = "openhands/sdk" }
+openhands-tools = { git = "https://github.com/All-Hands-AI/agent-sdk.git", rev = "b3ddfb3468c22a37fbb87d96323914d23bacb4ed", subdirectory = "openhands/tools" }
 
 [tool.poetry.group.dev.dependencies]
 pytest = "^7.0.0"
@@ -77,7 +78,7 @@ flake8 = "^6.0.0"
 mypy = "^1.0.0"
 pre-commit = "^3.7.0"
 ruff = "^0.11.8"
-httpx = "^0.25.0"
+httpx = ">=0.28.1"
 pytest-asyncio = "^0.21.0"
 
 [tool.poetry.scripts]
@@ -130,4 +131,4 @@ disallow_untyped_defs = true
 ignore_missing_imports = true
 
 [tool.uv.sources]
-openhands-sdk = { git = "https://github.com/All-Hands-AI/agent-sdk.git", subdirectory = "openhands/sdk", rev = "585d4779b188694e99127431db51190db19e4352" }
+openhands-sdk = { git = "https://github.com/All-Hands-AI/agent-sdk.git", subdirectory = "openhands/sdk", rev = "b3ddfb3468c22a37fbb87d96323914d23bacb4ed" }
