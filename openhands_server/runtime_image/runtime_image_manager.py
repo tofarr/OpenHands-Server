@@ -31,9 +31,9 @@ class RuntimeImageManager(ABC):
     async def __aexit__():
         """Stop using this runtime image manager"""
 
-    @abstractmethod
     @classmethod
-    def get_instance() -> "RuntimeImageManager":
+    @abstractmethod
+    def get_instance(cls) -> "RuntimeImageManager":
         """ Get an instance of runtime image manager """
 
 
