@@ -3,10 +3,10 @@
 from abc import ABC, abstractmethod
 from uuid import UUID
 
-from openhands_server.runtime_container.model import RuntimeContainerInfo, RuntimeContainerPage
+from openhands_server.runtime_container.runtime_container_models import RuntimeContainerInfo, RuntimeContainerPage
 
 
-class RuntimeContainerManager(ABC):
+class RuntimeContainerService(ABC):
 
     @abstractmethod
     async def search_runtime_containers(user_id: UUID | None = None, page_id: str | None = None, limit: int = 100) -> RuntimeContainerPage:
@@ -39,23 +39,23 @@ class RuntimeContainerManager(ABC):
     # Lifecycle methods
 
     async def __aenter__():
-        """Start using this runtime container manager"""
+        """Start using this runtime container service"""
 
     async def __aexit__():
-        """Stop using this runtime container manager"""
+        """Stop using this runtime container service"""
 
     @classmethod
     @abstractmethod
-    def get_instance(cls) -> "RuntimeContainerManager":
-        """ Get an instance of runtime container manager """
+    def get_instance(cls) -> "RuntimeContainerService":
+        """ Get an instance of runtime container service """
 
 
-_runtime_container_manager = None
+_runtime_container_service = None
 
 
-def get_default_runtime_container_manager():
-    global _runtime_container_manager
-    if _runtime_container_manager:
-        return _runtime_container_manager
-    _runtime_container_manager = get_impl(RuntimeContainerManager)
-    return _runtime_container_manager
+def get_default_runtime_container_service():
+    global _runtime_container_service
+    if _runtime_container_service:
+        return _runtime_container_service
+    _runtime_container_service = get_impl(RuntimeContainerService)
+    return _runtime_container_service

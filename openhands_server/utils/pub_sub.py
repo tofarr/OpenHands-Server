@@ -12,7 +12,7 @@ logger = get_logger(__name__)
 
 @dataclass
 class PubSub:
-    """A subscription manager that extends ConversationCallbackType functionality.
+    """A subscription service that extends ConversationCallbackType functionality.
     This class maintains a dictionary of UUIDs to ConversationCallbackType instances
     and provides methods to subscribe/unsubscribe callbacks. When invoked, it calls
     all registered callbacks with proper error handling.

@@ -37,7 +37,7 @@ class SandboxedConversationService(ABC):
         """Begin the process of deleting a conversation (Which may involve stopping it first). Return False if the conversation did not exist"""
 
     async def __aenter__():
-        """Start using this conversation manager"""
+        """Start using this conversation service"""
 
     async def __aexit__():
-        """Stop using this conversation manager"""
+        """Stop using this conversation service"""

@@ -7,12 +7,12 @@ from openhands_server.local_conversation.model import LocalConversationInfo, Sta
 from openhands_server.sandboxed_conversation.sandboxed_conversation_models import LocalConversationPage
 
 
-class LocalConversationManager(ABC):
+class LocalConversationService(ABC):
     """
     Local conversations have no concept of a user - it is whoever has been granted access to
     the sandbox in which the conversation is being run.
 
-    A local conversation manager may simply run in the current environment, or it may run and pass events
+    A local conversation service may simply run in the current environment, or it may run and pass events
     to another url or process.
     """
 
@@ -45,23 +45,23 @@ class LocalConversationManager(ABC):
     # Lifecycle methods
 
     async def __aenter__():
-        """Start using this runtime image manager"""
+        """Start using this runtime image service"""
 
     async def __aexit__():
-        """Stop using this runtime image manager"""
+        """Stop using this runtime image service"""
 
     @classmethod
     @abstractmethod
-    def get_instance(cls) -> "LocalConversationManager":
-        """ Get an instance of runtime image manager """
+    def get_instance(cls) -> "LocalConversationService":
+        """ Get an instance of runtime image service """
 
 
-_local_conversation_manager = None
+_local_conversation_service = None
 
 
-def get_default_local_conversation_manager():
-    global _local_conversation_manager
-    if _local_conversation_manager:
-        return _local_conversation_manager
-    _local_conversation_manager = get_impl(LocalConversationManager)
-    return _local_conversation_manager
+def get_default_local_conversation_service():
+    global _local_conversation_service
+    if _local_conversation_service:
+        return _local_conversation_service
+    _local_conversation_service = get_impl(LocalConversationService)
+    return _local_conversation_service

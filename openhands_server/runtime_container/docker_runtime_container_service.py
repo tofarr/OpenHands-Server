@@ -11,17 +11,17 @@ import docker
 from docker.errors import APIError, NotFound
 from pydantic import SecretStr
 
-from openhands_server.runtime_container.model import (
+from openhands_server.runtime_container.runtime_container_models import (
     RuntimeContainerInfo,
     RuntimeContainerPage,
     RuntimeContainerStatus,
 )
-from openhands_server.runtime_container.manager import (
-    RuntimeContainerManager,
+from openhands_server.runtime_container.runtime_container_service import (
+    RuntimeContainerService,
 )
-from openhands_server.runtime_image.docker_runtime_image_manager import DockerRuntimeImageManager
+from openhands_server.runtime_image.docker_runtime_image_service import DockerRuntimeImageService
 from openhands_server.runtime_image.runtime_image_service import (
-    get_default_runtime_image_manager,
+    get_default_runtime_image_service,
 )
 
 @dataclass
@@ -39,12 +39,12 @@ class ExposedPort:
 
 
 @dataclass
-class DockerRuntimeContainerManager(RuntimeContainerManager):
+class DockerRuntimeContainerService(RuntimeContainerService):
 
     client: docker.DockerClient = field(default=None)
     container_name_prefix: str = "openhands-runtime-"
     exposed_url_pattern: str = "http://localhost:{port}"
-    runtime_image_manager: DockerRuntimeImageManager = field(default_factory=DockerRuntimeImageManager.get_instance)
+    runtime_image_service: DockerRuntimeImageService = field(default_factory=DockerRuntimeImageService.get_instance)
     mounts: list[VolumeMount] = field(default_factory=list)
     exposed_port: list[ExposedPort] = field(default_factory=lambda: [
         ExposedPort("APPLICATION_SERVER_PORT", 'The port on which the application server runs within the container')
@@ -209,8 +209,8 @@ class DockerRuntimeContainerManager(RuntimeContainerManager):
     async def start_runtime_container(self, user_id: UUID, runtime_image_id: str) -> UUID:
         """Start a new runtime container"""
         # Get runtime image info
-        runtime_image_manager = get_default_runtime_image_manager()
-        runtime_image = await runtime_image_manager.get_runtime_image(runtime_image_id)
+        runtime_image_service = get_default_runtime_image_service()
+        runtime_image = await runtime_image_service.get_runtime_image(runtime_image_id)
         
         if runtime_image is None:
             raise ValueError(f"Runtime image {runtime_image_id} not found")
@@ -263,7 +263,7 @@ class DockerRuntimeContainerManager(RuntimeContainerManager):
             return container_id
 
         except APIError as e:
-            raise RuntimeError(f"Failed to start container: {e}")
+            raise RuntimeContainerError(f"Failed to start container: {e}")
 
     async def resume_runtime_container(self, id: UUID) -> bool:
         """Resume a paused runtime container"""
@@ -320,14 +320,14 @@ class DockerRuntimeContainerManager(RuntimeContainerManager):
             return False
 
     async def __aenter__(self):
-        """Start using this runtime container manager"""
+        """Start using this runtime container service"""
         return self
 
     async def __aexit__(self, exc_type, exc_val, exc_tb):
-        """Stop using this runtime container manager"""
+        """Stop using this runtime container service"""
         pass
 
     @classmethod
-    def get_instance(cls) -> "RuntimeContainerManager":
-        """Get an instance of runtime container manager"""
+    def get_instance(cls) -> "RuntimeContainerService":
+        """Get an instance of runtime container service"""
         return cls()

@@ -1,3 +1,3 @@
 
-class RuntimeError(Exception):
+class RuntimeContainerError(Exception):
     """Base class for all runtime errors"""

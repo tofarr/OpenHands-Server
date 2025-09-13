@@ -10,7 +10,7 @@ import shutil
 from uuid import UUID, uuid4
 
 from openhands_server.local_conversation.local_conversation import LocalConversation
-from openhands_server.local_conversation.manager import LocalConversationManager
+from openhands_server.local_conversation.service import LocalConversationService
 from openhands_server.local_conversation.model import LocalConversationInfo, LocalConversationPage, StartConversationRequest, StoredLocalConversation
 
 
@@ -18,8 +18,8 @@ logger = logging.getLogger(__name__)
 
 
 @dataclass
-class DefaultLocalConversationManager(LocalConversationManager):
-    """ Conversation manager which stores to a local context. """
+class DefaultLocalConversationService(LocalConversationService):
+    """ Conversation service which stores to a local context. """
 
     file_store_path: Path = field(default=Path("/workspace/conversations"))
     workspace_path: Path = field(default=Path("/workspace"))
@@ -95,8 +95,8 @@ class DefaultLocalConversationManager(LocalConversationManager):
         shutil.rmtree(self.workspace_path / conversation_id.hex)
 
     @classmethod
-    def get_instance(cls) -> LocalConversationManager:
-        return DefaultLocalConversationManager()
+    def get_instance(cls) -> LocalConversationService:
+        return DefaultLocalConversationService()
 
 
 @dataclass
