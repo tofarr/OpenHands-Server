@@ -11,8 +11,9 @@ from openhands_server.sandbox_spec.sandbox_spec_models import SandboxSpecInfo, S
 @dataclass
 class DockerSandboxSpecService(SandboxSpecService):
     """
-    Runtime service for docker images. By default, all images with the repository given are loaded and returned (They may have different tag)
-    The combination of the repository and tag is treated as the id in the resulting image.
+    Sandbox spec service for docker images. By default, all images with the repository given 
+    are loaded and returned (They may have different tag) The combination of the repository 
+    and tag is treated as the id in the resulting image.
     """
 
     client: docker.DockerClient = field(default_factory=docker.from_env)
