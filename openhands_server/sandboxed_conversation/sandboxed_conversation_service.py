@@ -3,21 +3,21 @@
 from abc import ABC, abstractmethod
 from uuid import UUID
 
-from openhands_server.conversation.model import ConversationInfo, ConversationInfoPage
+from openhands_server.sandboxed_conversation.sandboxed_conversation_models import SandboxedConversationInfo, SandboxedConversationInfoPage
 
 
-class ConversationManager(ABC):
+class SandboxedConversationService(ABC):
 
     @abstractmethod
-    async def search_conversation_info(user_id: UUID | None = None, page_id: str | None = None, limit: int = 100) -> ConversationInfoPage:
+    async def search_conversation_info(user_id: UUID | None = None, page_id: str | None = None, limit: int = 100) -> SandboxedConversationInfoPage:
         """Search for conversations"""
 
     @abstractmethod
-    async def get_conversation_info(id: UUID) -> ConversationInfo | None:
+    async def get_conversation_info(id: UUID) -> SandboxedConversationInfo | None:
         """Get a single conversation info. Return None if the conversation was not found."""
 
     @abstractmethod
-    async def batch_get_conversation_info(ids: list[UUID]) -> list[ConversationInfo | None]:
+    async def batch_get_conversation_info(ids: list[UUID]) -> list[SandboxedConversationInfo | None]:
         """Get a batch of conversation info. Return None for any conversation which was not found."""
 
     @abstractmethod
@@ -25,15 +25,15 @@ class ConversationManager(ABC):
         """Begin the process of starting a conversation. Return the UUID of the new conversation """
 
     @abstractmethod
-    async def stop_conversation(id: UUID) -> UUID:
+    async def stop_conversation(user_id: UUID, id: UUID) -> UUID:
         """Begin the process of starting a conversation. Return the UUID of the new conversation """
 
     @abstractmethod
-    async def start_conversation(id: UUID) -> bool:
+    async def start_conversation(user_id: UUID, id: UUID) -> bool:
         """Begin the process of resuming a conversation. Return True if the conversation exists and is being resumed or is already running. Return False if the conversation did not exist"""
 
     @abstractmethod
-    async def delete_conversation(id: UUID) -> bool:
+    async def delete_conversation(user_id: UUID, id: UUID) -> bool:
         """Begin the process of deleting a conversation (Which may involve stopping it first). Return False if the conversation did not exist"""
 
     async def __aenter__():

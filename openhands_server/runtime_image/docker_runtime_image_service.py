@@ -4,14 +4,14 @@ from datetime import datetime
 from typing import List, Optional
 import docker
 from docker.errors import NotFound, APIError
-from openhands_server.runtime_image.manager import RuntimeImageManager
-from openhands_server.runtime_image.model import RuntimeImageInfo, RuntimeImageInfoPage
+from openhands_server.runtime_image.runtime_image_service import RuntimeImageService
+from openhands_server.runtime_image.runtime_image_models import RuntimeImageInfo, RuntimeImageInfoPage
 
 
 @dataclass
-class DockerRuntimeImageManager(RuntimeImageManager):
+class DockerRuntimeImageService(RuntimeImageService):
     """
-    Runtime manager for docker images. By default, all images with the repository given are loaded and returned (They may have different tag)
+    Runtime service for docker images. By default, all images with the repository given are loaded and returned (They may have different tag)
     The combination of the repository and tag is treated as the id in the resulting image.
     """
 
@@ -112,5 +112,5 @@ class DockerRuntimeImageManager(RuntimeImageManager):
         return results
 
     @classmethod
-    def get_instance(cls) -> "RuntimeImageManager":
-        return DockerRuntimeImageManager()
+    def get_instance(cls) -> "RuntimeImageService":
+        return DockerRuntimeImageService()

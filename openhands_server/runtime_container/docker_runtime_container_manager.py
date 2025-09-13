@@ -20,7 +20,7 @@ from openhands_server.runtime_container.manager import (
     RuntimeContainerManager,
 )
 from openhands_server.runtime_image.docker_runtime_image_manager import DockerRuntimeImageManager
-from openhands_server.runtime_image.manager import (
+from openhands_server.runtime_image.runtime_image_service import (
     get_default_runtime_image_manager,
 )
 

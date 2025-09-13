@@ -4,7 +4,7 @@ from abc import ABC, abstractmethod
 from uuid import UUID
 
 from openhands_server.local_conversation.model import LocalConversationInfo, StartConversationRequest
-from openhands_server.sandboxed_conversation.model import LocalConversationPage
+from openhands_server.sandboxed_conversation.sandboxed_conversation_models import LocalConversationPage
 
 
 class LocalConversationManager(ABC):
@@ -16,21 +16,21 @@ class LocalConversationManager(ABC):
     to another url or process.
     """
 
-    async def search_local_conversations(self, page_id: str | None = None, limit: int = 100) -> LocalConversationPage:
+    async def search_local_conversations(self, user_id: UUID, page_id: str | None = None, limit: int = 100) -> SandboxedConversationPage:
         """Search for local conversations"""
 
 
-    async def get_local_conversation(self, conversation_id: UUID) -> LocalConversationInfo:
+    async def get_local_conversation(self, user_id: UUID, conversation_id: UUID) -> SandboxedConversationInfo:
         """Get a single local conversation info. Return None if the conversation was not found."""
 
 
-    async def batch_get_local_conversations(self, conversation_ids: list[UUID]) -> list[LocalConversationInfo | None]:
+    async def batch_get_local_conversations(self, conversation_ids: list[UUID]) -> list[SandboxedConversationInfo | None]:
         """Get a batch of local conversations. Return None for any conversation which was not found."""
 
 
     # Write Methods
 
-    async def start_local_conversation(self, request: StartConversationRequest) -> UUID:
+    async def start_local_conversation(self, request: StartSandboxedConversationRequest) -> UUID:
         """ Start a local conversation and return its id. """
 
     async def pause_local_conversation(self, conversation_id: UUID) -> bool:

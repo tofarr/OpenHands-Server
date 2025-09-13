@@ -6,7 +6,7 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from openhands import get_user_id
 
 from openhands_server.runtime_image.model import RuntimeImageInfo, RuntimeImageInfoPage
-from openhands_server.runtime_image.manager import RuntimeImageManager, get_default_runtime_image_manager
+from openhands_server.runtime_image.runtime_image_service import RuntimeImageManager, get_default_runtime_image_manager
 from openhands_server.utils.success import Success
 
 router = APIRouter(prefix="/runtime-images")
