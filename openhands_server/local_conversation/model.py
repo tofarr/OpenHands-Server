@@ -1,9 +1,12 @@
 
 
-from datetime import datetime
+from datetime import UTC, datetime
 from enum import Enum
 from uuid import UUID
 from pydantic import BaseModel, Field
+
+from openhands_server.local_conversation.agent_info import AgentInfo
+from openhands_server.local_conversation.tool import ToolInfo
 
 
 # TODO: Review these status with Calvin & Xingyao
@@ -14,13 +17,19 @@ class ConversationStatus(Enum):
     STOPPED = 'STOPPED'
 
 
-class LocalConversationInfo(BaseModel):
-    """ Information about a conversation running locally without a Runtime sandbox. """
-    id: UUID
+class StartConversationRequest(BaseModel):
     title: str | None
-    status: ConversationStatus
-    created_at: datetime = Field(..., description="Timestamp when the conversation was created")
-    updated_at: datetime = Field(..., description="Timestamp when the conversation was updated")
+    agent: AgentInfo
+
+
+class StoredLocalConversation(StartConversationRequest):
+    id: UUID
+    created_at: datetime = Field(default_factory=lambda: datetime.now(UTC))
+    updated_at: datetime = Field(default_factory=lambda: datetime.now(UTC))
+
+class LocalConversationInfo(StoredLocalConversation):
+    """ Information about a conversation running locally without a Runtime sandbox. """
+    status: ConversationStatus = ConversationStatus.STOPPED
 
 
 class LocalConversationPage(BaseModel):

@@ -4,12 +4,12 @@ from openhands.sdk import LLM, Tool
 from openhands.tools import BashTool, FileEditorTool, TaskTrackerTool
 from pydantic import BaseModel
 
-from openhands_server.local_conversation.tool import ToolRequest
+from openhands_server.local_conversation.tool import ToolInfo
 
 
-class AgentRequest(BaseModel):
+class AgentInfo(BaseModel):
     llm: LLM
-    tools: list[ToolRequest] = None
+    tools: list[ToolInfo] = None
 
     def create_agent(self, cwd: str):
         return Agent(

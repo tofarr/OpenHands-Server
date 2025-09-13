@@ -3,7 +3,7 @@
 from abc import ABC
 from uuid import UUID
 
-from openhands_server.local_conversation.model import LocalConversationInfo
+from openhands_server.local_conversation.model import LocalConversationInfo, StartConversationRequest
 from openhands_server.sandboxed_conversation.model import LocalConversationPage
 
 
@@ -20,7 +20,7 @@ class LocalConversationManager(ABC):
         """Search for local conversations"""
 
 
-    async def get_local_conversation(self, id: UUID) -> LocalConversationInfo:
+    async def get_local_conversation(self, conversation_id: UUID) -> LocalConversationInfo:
         """Get a single local conversation info. Return None if the conversation was not found."""
 
 
@@ -30,15 +30,14 @@ class LocalConversationManager(ABC):
 
     # Write Methods
 
-    async def start_local_conversation(self) -> UUID:
+    async def start_local_conversation(self, request: StartConversationRequest) -> UUID:
         """ Start a local conversation and return its id. """
 
-
-    async def pause_local_conversation(self, id: UUID) -> bool:
+    async def pause_local_conversation(self, conversation_id: UUID) -> bool:
         """ Pause a local conversation. """
 
-    async def resume_local_conversation(self, id: UUID) -> bool:
+    async def resume_local_conversation(self, conversation_id: UUID) -> bool:
         """ Resume a local conversation. """
 
-    async def delete_local_conversation(self, id: UUID) -> bool:
+    async def delete_local_conversation(self, conversation_id: UUID) -> bool:
         """ Delete a local conversation. Stop it if it is running. """

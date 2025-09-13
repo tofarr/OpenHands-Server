@@ -1,31 +1,36 @@
 
 
 import asyncio
-from dataclasses import dataclass
+from dataclasses import dataclass, field
+from datetime import UTC, datetime
+from pathlib import Path
 from uuid import UUID
-
-from fastapi import Path
 
 from openhands.sdk import Conversation, LocalFileStore, Message
 from openhands.sdk.utils.async_utils import AsyncCallbackWrapper, AsyncConversationCallback
-from pydantic import BaseModel, PrivateAttr
 
-from openhands_server.local_conversation.agent_request import AgentRequest
-from openhands_server.local_conversation.model import ConversationStatus, LocalConversationInfo
+from openhands_server.local_conversation.agent_info import AgentInfo
+from openhands_server.local_conversation.model import ConversationStatus, StoredLocalConversation
 from openhands_server.utils.pub_sub import PubSub
 
 
+@dataclass
+class LocalConversation:
+    stored: StoredLocalConversation
+    file_store_path: Path
+    working_dir: str
+    _lock: asyncio.Lock = field(default_factory=asyncio.Lock, init=False)
+    _conversation: Conversation | None = field(default=None, init=False)
+    _pub_sub: PubSub = field(default_factory=PubSub, init=False)
 
-class LocalConversation(BaseModel):
-    id: UUID
-    # TODO: We need the status to set this.
-    title: str | None
-    agent: AgentRequest
-    cwd: str
-    file_store_path: str
-    _lock: asyncio.Lock = PrivateAttr(default_factory=asyncio.Lock)
-    _conversation: Conversation | None = PrivateAttr(default=None)
-    _pub_sub: PubSub = PrivateAttr(default_factory=PubSub)
+    async def load_meta(self):
+        meta_file = self.file_store_path / "meta.json"
+        self.stored = StoredLocalConversation.model_validate_json(meta_file.read_text())
+
+    async def save_meta(self):
+        self.stored.updated_at = datetime.now(UTC)
+        meta_file = self.file_store_path / "meta.json"
+        meta_file.write_text(self.self.stored.model_dump_json())
 
     async def start(self):
         async with self._lock:
@@ -41,11 +46,11 @@ class LocalConversation(BaseModel):
 
                 self._conversation.run()
             
-            agent = self.agent.create_agent(self.cwd)
+            agent = self.agent.create_agent(self.working_dir)
             conversation = Conversation(
                 agent=agent, 
-                callbacks=[AsyncCallbackWrapper(self._pubsub)],
-                persist_filestore=LocalFileStore(self.file_store_path))
+                callbacks=[AsyncCallbackWrapper(self._pub_sub)],
+                persist_filestore=LocalFileStore(self.file_store_path / "events"))
             self._conversation = conversation
             loop = asyncio.get_running_loop()
             asyncio.create_task(loop.run_in_executor(None, conversation.run))
@@ -62,16 +67,6 @@ class LocalConversation(BaseModel):
                 loop = asyncio.get_running_loop()
                 asyncio.create_task(loop.run_in_executor(None, self._conversation.close))
 
-    async def get_info(self) -> LocalConversationInfo:
-        async with self._lock:
-            return LocalConversationInfo(
-                id=self.id,
-                title=self.title,
-                status=await self.get_status(),
-                created_at=self.created_at,
-                updated_at=self.updated_at,
-            )
-        
     async def send_message(self, message: Message):
         async with self._lock:
             loop = asyncio.get_running_loop()

@@ -5,32 +5,32 @@ from pydantic import BaseModel
 from openhands.tools import BashTool, FileEditorTool, TaskTrackerTool
 
 
-class ToolRequest(BaseModel, ABC):
-    """ A request to create a tool for use in an LLM."""
+class ToolInfo(BaseModel, ABC):
+    """ Info about a tool for use in an LLM."""
     
     @abstractmethod
     def create_tool(self) -> Tool:
         """ Create a tool """
 
 
-class BashToolRequest(ToolRequest):
+class BashToolInfo(ToolInfo):
     working_dir: str
 
     def create_tool(self):
         return BashTool.create(working_dir=self.working_dir)
     
 
-class FileEditorToolRequest(ToolRequest):
+class FileEditorToolInfo(ToolInfo):
 
     def create_tool(self):
         return FileEditorTool.create()
  
 
-class TaskTrackerToolRequest(ToolRequest):
+class TaskTrackerToolInfo(ToolInfo):
     save_dir: str
 
     def create_tool(self):
         return TaskTrackerTool.create(save_dir=self.save_dir)
     
 
-ToolRequestType = BashToolRequest | FileEditorToolRequest | TaskTrackerToolRequest
+ToolInfoType = BashToolInfo | FileEditorToolInfo | TaskTrackerToolInfo
