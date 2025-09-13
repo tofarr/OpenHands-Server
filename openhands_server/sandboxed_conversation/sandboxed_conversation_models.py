@@ -11,7 +11,7 @@ from openhands_server.local_conversation.model import LocalConversationInfo
 
 class SandboxedConversationInfo(LocalConversationInfo):
     """Information about a conversation running remotely in a Runtime sandbox """
-    runtime_container_id: UUID | None
+    sandbox_id: UUID | None
 
 
 class SandboxedConversationInfoPage(BaseModel):

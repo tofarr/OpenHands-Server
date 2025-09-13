@@ -7,9 +7,9 @@ from openhands_server.utils.import_utils import get_impl
 
 class SandboxSpecService(ABC):
     """
-    Service for accessing for runtime images. At present this is read only. The plan is that later this class
-    will allow building and deleting runtime images and limiting access of images by user and group.
-    It would also be nice to be able to set the desired number of warm containers for an image and scale this
+    Service for accessing sandbox specs. At present this is read only. The plan is that later this class
+    will allow building and deleting sandbox specs and limiting access of images by user and group.
+    It would also be nice to be able to set the desired number of warm sandboxes for a spec and scale this
     up and down.
     """
 

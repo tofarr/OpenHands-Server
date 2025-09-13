@@ -11,13 +11,13 @@ import docker
 from docker.errors import APIError, NotFound
 from pydantic import SecretStr
 
-from openhands_server.runtime_container.runtime_container_models import (
-    RuntimeContainerInfo,
-    RuntimeContainerPage,
-    RuntimeContainerStatus,
+from openhands_server.sandbox.sandbox_models import (
+    SandboxInfo,
+    SandboxPage,
+    SandboxStatus,
 )
-from openhands_server.runtime_container.runtime_container_service import (
-    RuntimeContainerService,
+from openhands_server.sandbox.sandbox_service import (
+    SandboxService,
 )
 from openhands_server.sandbox_spec.docker_sandbox_spec_service import DockerSandboxSpecService
 from openhands_server.sandbox_spec.sandbox_spec_service import (
@@ -39,7 +39,7 @@ class ExposedPort:
 
 
 @dataclass
-class DockerRuntimeContainerService(RuntimeContainerService):
+class DockerSandboxService(SandboxService):
 
     client: docker.DockerClient = field(default=None)
     container_name_prefix: str = "openhands-runtime-"
@@ -79,21 +79,21 @@ class DockerRuntimeContainerService(RuntimeContainerService):
         except ValueError:
             return None
 
-    def _docker_status_to_runtime_status(self, docker_status: str) -> RuntimeContainerStatus:
-        """Convert Docker container status to RuntimeContainerStatus"""
+    def _docker_status_to_runtime_status(self, docker_status: str) -> SandboxStatus:
+        """Convert Docker container status to SandboxStatus"""
         status_mapping = {
-            "running": RuntimeContainerStatus.RUNNING,
-            "paused": RuntimeContainerStatus.PAUSED,
-            "exited": RuntimeContainerStatus.DELETED,
-            "created": RuntimeContainerStatus.STARTING,
-            "restarting": RuntimeContainerStatus.STARTING,
-            "removing": RuntimeContainerStatus.DELETED,
-            "dead": RuntimeContainerStatus.ERROR,
+            "running": SandboxStatus.RUNNING,
+            "paused": SandboxStatus.PAUSED,
+            "exited": SandboxStatus.DELETED,
+            "created": SandboxStatus.STARTING,
+            "restarting": SandboxStatus.STARTING,
+            "removing": SandboxStatus.DELETED,
+            "dead": SandboxStatus.ERROR,
         }
-        return status_mapping.get(docker_status.lower(), RuntimeContainerStatus.ERROR)
+        return status_mapping.get(docker_status.lower(), SandboxStatus.ERROR)
 
-    def _container_to_runtime_info(self, container) -> RuntimeContainerInfo | None:
-        """Convert Docker container to RuntimeContainerInfo"""
+    def _container_to_runtime_info(self, container) -> SandboxInfo | None:
+        """Convert Docker container to SandboxInfo"""
         # Extract runtime ID from container name
         runtime_id = self._runtime_id_from_container_name(container.name)
         if runtime_id is None:
@@ -121,7 +121,7 @@ class DockerRuntimeContainerService(RuntimeContainerService):
         url = None
         session_api_key = None
         
-        if status == RuntimeContainerStatus.RUNNING:
+        if status == SandboxStatus.RUNNING:
             # Get the first exposed port mapping
             port_bindings = container.attrs.get("NetworkSettings", {}).get("Ports", {})
             if port_bindings:
@@ -134,7 +134,7 @@ class DockerRuntimeContainerService(RuntimeContainerService):
             # Generate session API key
             session_api_key = SecretStr(secrets.token_urlsafe(32))
 
-        return RuntimeContainerInfo(
+        return SandboxInfo(
             id=runtime_id,
             user_id=user_id_str,
             sandbox_spec_id=sandbox_spec_id,
@@ -144,14 +144,14 @@ class DockerRuntimeContainerService(RuntimeContainerService):
             created_at=created_at,
         )
 
-    async def search_runtime_containers(
+    async def search_sandboxes(
         self, user_id: UUID | None = None, page_id: str | None = None, limit: int = 100
-    ) -> RuntimeContainerPage:
-        """Search for runtime containers"""
+    ) -> SandboxPage:
+        """Search for sandboxes"""
         try:
             # Get all containers with our prefix
             all_containers = self._get_client().containers.list(all=True)
-            runtime_containers = []
+            sandboxes = []
 
             for container in all_containers:
                 if container.name.startswith(self.container_name_prefix):
@@ -159,10 +159,10 @@ class DockerRuntimeContainerService(RuntimeContainerService):
                     if runtime_info:
                         # Filter by user_id if specified
                         if user_id is None or runtime_info.user_id == str(user_id):
-                            runtime_containers.append(runtime_info)
+                            sandboxes.append(runtime_info)
 
             # Sort by creation time (newest first)
-            runtime_containers.sort(key=lambda x: x.created_at, reverse=True)
+            sandboxes.sort(key=lambda x: x.created_at, reverse=True)
 
             # Apply pagination
             start_idx = 0
@@ -173,22 +173,22 @@ class DockerRuntimeContainerService(RuntimeContainerService):
                     start_idx = 0
 
             end_idx = start_idx + limit
-            paginated_containers = runtime_containers[start_idx:end_idx]
+            paginated_containers = sandboxes[start_idx:end_idx]
 
             # Determine next page ID
             next_page_id = None
-            if end_idx < len(runtime_containers):
+            if end_idx < len(sandboxes):
                 next_page_id = str(end_idx)
 
-            return RuntimeContainerPage(
+            return SandboxPage(
                 items=paginated_containers, next_page_id=next_page_id
             )
 
         except APIError:
-            return RuntimeContainerPage(items=[], next_page_id=None)
+            return SandboxPage(items=[], next_page_id=None)
 
-    async def get_runtime_containers(self, id: UUID) -> RuntimeContainerInfo | None:
-        """Get a single runtime container info"""
+    async def get_sandboxes(self, id: UUID) -> SandboxInfo | None:
+        """Get a single sandbox info"""
         try:
             container_name = self._container_name_from_id(id)
             container = self._get_client().containers.get(container_name)
@@ -196,18 +196,18 @@ class DockerRuntimeContainerService(RuntimeContainerService):
         except (NotFound, APIError):
             return None
 
-    async def batch_get_runtime_containers(
+    async def batch_get_sandboxes(
         self, ids: list[UUID]
-    ) -> list[RuntimeContainerInfo | None]:
-        """Get a batch of runtime container info"""
+    ) -> list[SandboxInfo | None]:
+        """Get a batch of sandbox info"""
         results = []
         for container_id in ids:
-            result = await self.get_runtime_containers(container_id)
+            result = await self.get_sandboxes(container_id)
             results.append(result)
         return results
 
-    async def start_runtime_container(self, user_id: UUID, sandbox_spec_id: str) -> UUID:
-        """Start a new runtime container"""
+    async def start_sandbox(self, user_id: UUID, sandbox_spec_id: str) -> UUID:
+        """Start a new sandbox"""
         # Get runtime image info
         sandbox_spec_service = get_default_sandbox_spec_service()
         sandbox_spec = await sandbox_spec_service.get_sandbox_spec(sandbox_spec_id)
@@ -263,10 +263,10 @@ class DockerRuntimeContainerService(RuntimeContainerService):
             return container_id
 
         except APIError as e:
-            raise RuntimeContainerError(f"Failed to start container: {e}")
+            raise SandboxError(f"Failed to start container: {e}")
 
-    async def resume_runtime_container(self, id: UUID) -> bool:
-        """Resume a paused runtime container"""
+    async def resume_sandbox(self, id: UUID) -> bool:
+        """Resume a paused sandbox"""
         try:
             container_name = self._container_name_from_id(id)
             container = self._get_client().containers.get(container_name)
@@ -280,8 +280,8 @@ class DockerRuntimeContainerService(RuntimeContainerService):
         except (NotFound, APIError):
             return False
 
-    async def pause_runtime_container(self, id: UUID) -> bool:
-        """Pause a running runtime container"""
+    async def pause_sandbox(self, id: UUID) -> bool:
+        """Pause a running sandbox"""
         try:
             container_name = self._container_name_from_id(id)
             container = self._get_client().containers.get(container_name)
@@ -293,8 +293,8 @@ class DockerRuntimeContainerService(RuntimeContainerService):
         except (NotFound, APIError):
             return False
 
-    async def delete_runtime_container(self, id: UUID) -> bool:
-        """Delete a runtime container"""
+    async def delete_sandbox(self, id: UUID) -> bool:
+        """Delete a sandbox"""
         try:
             container_name = self._container_name_from_id(id)
             container = self._get_client().containers.get(container_name)
@@ -320,14 +320,14 @@ class DockerRuntimeContainerService(RuntimeContainerService):
             return False
 
     async def __aenter__(self):
-        """Start using this runtime container service"""
+        """Start using this sandbox service"""
         return self
 
     async def __aexit__(self, exc_type, exc_val, exc_tb):
-        """Stop using this runtime container service"""
+        """Stop using this sandbox service"""
         pass
 
     @classmethod
-    def get_instance(cls) -> "RuntimeContainerService":
-        """Get an instance of runtime container service"""
+    def get_instance(cls) -> "SandboxService":
+        """Get an instance of sandbox service"""
         return cls()

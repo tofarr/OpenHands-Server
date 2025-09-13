@@ -18,7 +18,7 @@ async def search_sandbox_specs(
     page_id: Annotated[str | None, Query(title="Optional next_page_id from the previously returned page")] = None,
     limit: Annotated[int, Query(title="The max number of results in the page", gt=1, lte=101, default=100)] = 100,
 ) -> SandboxSpecInfoPage:
-    """"""
+    """Search / List sandbox specs."""
     assert limit > 0
     assert limit <= 100
     return await sandbox_spec_service.search_sandbox_specs(page_id=page_id, limit=limit)
