@@ -54,11 +54,11 @@ class DefaultLocalConversationManager(LocalConversationManager):
                 logger.exception('error_reading_conversation:{conversation_dir}', stack_info=True)
         return LocalConversationPage(items=items)
 
-    async def batch_get_local_conversations(self, ids: list[UUID]) -> list[LocalConversationInfo | None]:
+    async def batch_get_local_conversations(self, conversation_ids: list[UUID]) -> list[LocalConversationInfo | None]:
         conversations = []
-        for id in ids:
+        for conversation_id in conversation_ids:
             try:
-                conversation = await self.get_local_conversation(id)
+                conversation = await self.get_local_conversation(conversation_id)
                 conversations.append(conversation)
             except Exception:
                 conversations.append(None)
@@ -93,6 +93,10 @@ class DefaultLocalConversationManager(LocalConversationManager):
             await conversation.close()
         shutil.rmtree(self.file_store_path / conversation_id.hex)
         shutil.rmtree(self.workspace_path / conversation_id.hex)
+
+    @classmethod
+    def get_instance(cls) -> LocalConversationManager:
+        return DefaultLocalConversationManager()
 
 
 @dataclass

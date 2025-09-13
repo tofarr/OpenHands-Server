@@ -25,6 +25,8 @@ class RuntimeImageManager(ABC):
     async def batch_get_runtime_images(ids: list[str]) -> list[RuntimeImageInfo | None]:
         """Get a batch of runtime info. Return None for any runtime which was not found."""
 
+    # Lifecycle methods
+
     async def __aenter__():
         """Start using this runtime image manager"""
 
@@ -44,7 +46,5 @@ def get_default_runtime_image_manager():
     global _runtime_image_manager
     if _runtime_image_manager:
         return _runtime_image_manager
-    # Import here to avoid circular imports
-    from openhands_server.runtime_image.docker_runtime_image_manager import DockerRuntimeImageManager
-    _runtime_image_manager = DockerRuntimeImageManager()
+    _runtime_image_manager = get_impl(RuntimeImageManager)
     return _runtime_image_manager

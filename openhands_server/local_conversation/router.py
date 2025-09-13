@@ -5,14 +5,16 @@ from fastapi import APIRouter, Depends, HTTPException, status
 
 from openhands import get_impl, get_user_id
 
-from openhands_server.conversation.model import LocalConversationInfo, LocalConversationPage
+from openhands_server.local_conversation.manager import LocalConversationManager
+from openhands_server.local_conversation.model import LocalConversationInfo, LocalConversationPage
 from openhands_server.utils.success import Success
 
 router = APIRouter(prefix="/local-conversations")
-#runtime_manager: RuntimeContainerManager = get_impl(RuntimeContainerManager)()
-#router.lifespan(runtime_manager)
+local_conversation_manager: LocalConversationManager = get_impl(LocalConversationManager)()
+router.lifespan(local_conversation_manager)
 
-# TODO: Currently a runtime container is only available to the user who created it. In future we could have a more advanced permissions model for sharing
+# LocalConversations are not available in the outer nesting container. They do not currently have permissions
+# as all validation is through the session_api_key
 
 # Read methods
 
@@ -20,56 +22,50 @@ router = APIRouter(prefix="/local-conversations")
 async def search_local_conversations(page_id: str | None = None, limit: int = 100) -> LocalConversationPage:
     assert limit > 0
     assert limit <= 100
-    #return await local_conversation_manager.search_runtime_containers(user_id, page_id, limit)
+    return await local_conversation_manager.search_local_conversations(page_id, limit)
 
 
 @router.get("/{id}")
-async def get_local_conversations(id: UUID, user_id: UUID = Depends(get_user_id)) -> LocalConversationInfo:
-    pass
-    #runtime_containers = await local_conversation_manager.get_conversations(id)
-    #if runtime_containers is None or runtime_containers.user_id != user_id:
-    #    raise HTTPException(status.HTTP_404_NOT_FOUND)
-    #return runtime_containers
+async def get_local_conversation(id: UUID) -> LocalConversationInfo:
+    local_conversation = await local_conversation_manager.get_local_conversation(conversation_id)
+    if local_conversation is None:
+        raise HTTPException(status.HTTP_404_NOT_FOUND)
+    return local_conversation
 
 
 @router.get("/")
-async def batch_get_local_conversations(ids: list[UUID], user_id: UUID = Depends(get_user_id)) -> list[LocalConversationInfo | None]:
+async def batch_get_local_conversations(ids: list[UUID]) -> list[LocalConversationInfo | None]:
     assert len(ids) < 100
-    #runtime_containerss = await local_conversation_manager.batch_get_runtime_containers(user_id, ids)
-    #runtime_containerss = [
-    #    runtime_containers if runtime_containers and runtime_containers.user_id == user_id else None
-    #    for runtime_containers in runtime_containerss
-    #]
-    #return runtime_containerss
+    local_conversations = await local_conversation_manager.batch_get_local_conversations(ids)
+    return local_conversations
 
 
 # Write Methods
 
 @router.post("/")
-async def start_local_conversation(user_id: UUID = Depends(get_user_id)) -> UUID:
-    pass
-    #id = await runtime_manager.start_runtime(user_id)
-    #return id
+async def start_local_conversation() -> UUID:
+    id = await local_conversation_manager.start_local_conversation()
+    return id
 
 
 @router.post("/{id}/pause")
-async def pause_local_conversation(id: UUID, user_id: UUID = Depends(get_user_id)) -> Success:
-    #exists = await local_conversa.pause_runtime(user_id, id)
-    #if not exists:
-    #    raise HTTPException(status.HTTP_404_NOT_FOUND) 
+async def pause_local_conversation(id: UUID) -> Success:
+    paused = await local_conversation_manager.pause_local_conversation(id)
+    if not paused:
+        raise HTTPException(status.HTTP_400_BAD_REQUEST) 
     return Success()
 
 @router.post("/{id}/resume")
-async def resume_local_conversation(id: UUID, user_id: UUID = Depends(get_user_id)) -> Success:
-    #exists = await runtime_manager.resume_runtime(user_id, id)
-    #if not exists:
-    #    raise HTTPException(status.HTTP_404_NOT_FOUND) 
+async def resume_local_conversation(id: UUID) -> Success:
+    paused = await local_conversation_manager.resume_local_conversation(id)
+    if not paused:
+        raise HTTPException(status.HTTP_400_BAD_REQUEST) 
     return Success()
 
 
 @router.delete("/{id}")
-async def delete_local_conversation(id: UUID, user_id: UUID = Depends(get_user_id)) -> Success:
-    #exists = await runtime_manager.delete_runtime(user_id, id)
-    #if not exists:
-    #    raise HTTPException(status.HTTP_404_NOT_FOUND) 
+async def delete_local_conversation(id: UUID) -> Success:
+    deleted = await local_conversation_manager.delete_local_conversation(id)
+    if not deleted:
+        raise HTTPException(status.HTTP_400_BAD_REQUEST) 
     return Success()

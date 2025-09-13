@@ -36,6 +36,8 @@ class RuntimeContainerManager(ABC):
     async def delete_runtime_container(id: UUID) -> bool:
         """Begin the process of deleting a runtime (Which may involve stopping it first). Return False if the runtime did not exist"""
 
+    # Lifecycle methods
+
     async def __aenter__():
         """Start using this runtime container manager"""
 
@@ -55,7 +57,5 @@ def get_default_runtime_container_manager():
     global _runtime_container_manager
     if _runtime_container_manager:
         return _runtime_container_manager
-    # Import here to avoid circular imports
-    from openhands_server.runtime_container.docker_runtime_container_manager import DockerRuntimeContainerManager
-    _runtime_container_manager = DockerRuntimeContainerManager()
+    _runtime_container_manager = get_impl(RuntimeContainerManager)
     return _runtime_container_manager
