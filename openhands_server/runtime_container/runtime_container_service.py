@@ -4,6 +4,7 @@ from abc import ABC, abstractmethod
 from uuid import UUID
 
 from openhands_server.runtime_container.runtime_container_models import RuntimeContainerInfo, RuntimeContainerPage
+from openhands_server.utils.import_utils import get_impl
 
 
 class RuntimeContainerService(ABC):
@@ -21,7 +22,7 @@ class RuntimeContainerService(ABC):
         """Get a batch of runtime container info. Return None for any runtime container which was not found."""
 
     @abstractmethod
-    async def start_runtime_container(user_id: UUID, runtime_image_id: str) -> UUID:
+    async def start_runtime_container(user_id: UUID, sandbox_spec_id: str) -> UUID:
         """Begin the process of starting a runtime. Return the UUID of the new runtime """
 
     @abstractmethod

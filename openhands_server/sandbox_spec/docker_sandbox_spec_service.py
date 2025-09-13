@@ -4,12 +4,12 @@ from datetime import datetime
 from typing import List, Optional
 import docker
 from docker.errors import NotFound, APIError
-from openhands_server.runtime_image.runtime_image_service import RuntimeImageService
-from openhands_server.runtime_image.runtime_image_models import RuntimeImageInfo, RuntimeImageInfoPage
+from openhands_server.sandbox_spec.sandbox_spec_service import SandboxSpecService
+from openhands_server.sandbox_spec.sandbox_spec_models import SandboxSpecInfo, SandboxSpecInfoPage
 
 
 @dataclass
-class DockerRuntimeImageService(RuntimeImageService):
+class DockerSandboxSpecService(SandboxSpecService):
     """
     Runtime service for docker images. By default, all images with the repository given are loaded and returned (They may have different tag)
     The combination of the repository and tag is treated as the id in the resulting image.
@@ -21,8 +21,8 @@ class DockerRuntimeImageService(RuntimeImageService):
     initial_env: dict[str, str] = field(default_factory=dict)
     working_dir: str = '/openhands/code'
 
-    def _docker_image_to_runtime_images(self, image) -> RuntimeImageInfo:
-        """Convert a Docker image to RuntimeImageInfo"""
+    def _docker_image_to_sandbox_specs(self, image) -> SandboxSpecInfo:
+        """Convert a Docker image to SandboxSpecInfo"""
         # Extract repository and tag from image tags
         # Use the first tag if multiple tags exist, or use the image ID if no tags
         if image.tags:
@@ -38,7 +38,7 @@ class DockerRuntimeImageService(RuntimeImageService):
         except (ValueError, AttributeError):
             created_at = datetime.now()
         
-        return RuntimeImageInfo(
+        return SandboxSpecInfo(
             id=image_id,
             command=self.command,
             created_at=created_at,
@@ -46,7 +46,7 @@ class DockerRuntimeImageService(RuntimeImageService):
             working_dir=self.working_dir
         )
 
-    async def search_runtime_images(self, image_name__eq: str | None = None, page_id: str | None = None, limit: int = 100) -> RuntimeImageInfoPage:
+    async def search_sandbox_specs(self, image_name__eq: str | None = None, page_id: str | None = None, limit: int = 100) -> SandboxSpecInfoPage:
         """Search for runtime images"""
         try:
             # If image_name__eq is provided, search for that specific image
@@ -59,14 +59,14 @@ class DockerRuntimeImageService(RuntimeImageService):
             # Get all images that match the repository
             images = self.client.images.list(name=search_name)
             
-            # Convert Docker images to RuntimeImageInfo
-            runtime_images = []
+            # Convert Docker images to SandboxSpecInfo
+            sandbox_specs = []
             for image in images:
                 # Only include images that have tags matching our repository
                 if image.tags:
                     for tag in image.tags:
                         if tag.startswith(self.repository):
-                            runtime_images.append(self._docker_image_to_runtime_images(image))
+                            sandbox_specs.append(self._docker_image_to_sandbox_specs(image))
                             break  # Only add once per image, even if multiple matching tags
             
             # Apply pagination
@@ -78,39 +78,39 @@ class DockerRuntimeImageService(RuntimeImageService):
                     start_idx = 0
             
             end_idx = start_idx + limit
-            paginated_images = runtime_images[start_idx:end_idx]
+            paginated_images = sandbox_specs[start_idx:end_idx]
             
             # Determine next page ID
             next_page_id = None
-            if end_idx < len(runtime_images):
+            if end_idx < len(sandbox_specs):
                 next_page_id = str(end_idx)
             
-            return RuntimeImageInfoPage(
+            return SandboxSpecInfoPage(
                 items=paginated_images,
                 next_page_id=next_page_id
             )
             
         except APIError as e:
             # Return empty page if there's an API error
-            return RuntimeImageInfoPage(items=[], next_page_id=None)
+            return SandboxSpecInfoPage(items=[], next_page_id=None)
 
-    async def get_runtime_image(self, id: str) -> RuntimeImageInfo | None:
+    async def get_sandbox_spec(self, id: str) -> SandboxSpecInfo | None:
         """Get a single runtime image info by ID"""
         try:
             # Try to get the image by ID (which should be repository:tag)
             image = self.client.images.get(id)
-            return self._docker_image_to_runtime_images(image)
+            return self._docker_image_to_sandbox_specs(image)
         except (NotFound, APIError):
             return None
 
-    async def batch_get_runtime_images(self, ids: list[str]) -> list[RuntimeImageInfo | None]:
+    async def batch_get_sandbox_specs(self, ids: list[str]) -> list[SandboxSpecInfo | None]:
         """Get a batch of runtime image info"""
         results = []
         for image_id in ids:
-            result = await self.get_runtime_image(image_id)
+            result = await self.get_sandbox_spec(image_id)
             results.append(result)
         return results
 
     @classmethod
-    def get_instance(cls) -> "RuntimeImageService":
-        return DockerRuntimeImageService()
+    def get_instance(cls) -> "SandboxSpecService":
+        return DockerSandboxSpecService()

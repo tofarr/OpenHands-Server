@@ -7,19 +7,14 @@ from uuid import UUID
 from pydantic import BaseModel, Field
 
 
-class RuntimeImageStatus(Enum):
+class SandboxSpecStatus(Enum):
     BUILDING = "BUILDING"
     READY = "READY"
     ERROR = "ERROR"
     DELETING = "DELETING"
 
 
-class ExposedPort(BaseModel):
-    port: int
-    description: str | None = None
-
-
-class RuntimeImageInfo(BaseModel):
+class SandboxSpecInfo(BaseModel):
     """ A runtime image is a template for creating a runtime, analogous to a docker image """
     id: str
     command: str
@@ -28,6 +23,6 @@ class RuntimeImageInfo(BaseModel):
     working_dir: str = '/openhands/code'
 
 
-class RuntimeImageInfoPage(BaseModel):
-    items: list[RuntimeImageInfo]
+class SandboxSpecInfoPage(BaseModel):
+    items: list[SandboxSpecInfo]
     next_page_id: str | None = None

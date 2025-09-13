@@ -19,9 +19,9 @@ from openhands_server.runtime_container.runtime_container_models import (
 from openhands_server.runtime_container.runtime_container_service import (
     RuntimeContainerService,
 )
-from openhands_server.runtime_image.docker_runtime_image_service import DockerRuntimeImageService
-from openhands_server.runtime_image.runtime_image_service import (
-    get_default_runtime_image_service,
+from openhands_server.sandbox_spec.docker_sandbox_spec_service import DockerSandboxSpecService
+from openhands_server.sandbox_spec.sandbox_spec_service import (
+    get_default_sandbox_spec_service,
 )
 
 @dataclass
@@ -44,7 +44,7 @@ class DockerRuntimeContainerService(RuntimeContainerService):
     client: docker.DockerClient = field(default=None)
     container_name_prefix: str = "openhands-runtime-"
     exposed_url_pattern: str = "http://localhost:{port}"
-    runtime_image_service: DockerRuntimeImageService = field(default_factory=DockerRuntimeImageService.get_instance)
+    sandbox_spec_service: DockerSandboxSpecService = field(default_factory=DockerSandboxSpecService.get_instance)
     mounts: list[VolumeMount] = field(default_factory=list)
     exposed_port: list[ExposedPort] = field(default_factory=lambda: [
         ExposedPort("APPLICATION_SERVER_PORT", 'The port on which the application server runs within the container')
@@ -99,12 +99,12 @@ class DockerRuntimeContainerService(RuntimeContainerService):
         if runtime_id is None:
             return None
 
-        # Get user_id and runtime_image_id from labels
+        # Get user_id and sandbox_spec_id from labels
         labels = container.labels or {}
         user_id_str = labels.get("user_id")
-        runtime_image_id = labels.get("runtime_image_id")
+        sandbox_spec_id = labels.get("sandbox_spec_id")
         
-        if not user_id_str or not runtime_image_id:
+        if not user_id_str or not sandbox_spec_id:
             return None
 
         # Convert Docker status to runtime status
@@ -137,7 +137,7 @@ class DockerRuntimeContainerService(RuntimeContainerService):
         return RuntimeContainerInfo(
             id=runtime_id,
             user_id=user_id_str,
-            runtime_image_id=runtime_image_id,
+            sandbox_spec_id=sandbox_spec_id,
             status=status,
             url=url,
             session_api_key=session_api_key,
@@ -206,25 +206,25 @@ class DockerRuntimeContainerService(RuntimeContainerService):
             results.append(result)
         return results
 
-    async def start_runtime_container(self, user_id: UUID, runtime_image_id: str) -> UUID:
+    async def start_runtime_container(self, user_id: UUID, sandbox_spec_id: str) -> UUID:
         """Start a new runtime container"""
         # Get runtime image info
-        runtime_image_service = get_default_runtime_image_service()
-        runtime_image = await runtime_image_service.get_runtime_image(runtime_image_id)
+        sandbox_spec_service = get_default_sandbox_spec_service()
+        sandbox_spec = await sandbox_spec_service.get_sandbox_spec(sandbox_spec_id)
         
-        if runtime_image is None:
-            raise ValueError(f"Runtime image {runtime_image_id} not found")
+        if sandbox_spec is None:
+            raise ValueError(f"Runtime image {sandbox_spec_id} not found")
 
         # Generate container ID and name
         container_id = uuid4()
         container_name = self._container_name_from_id(container_id)
 
         # Prepare environment variables
-        env_vars = runtime_image.initial_env.copy()
+        env_vars = sandbox_spec.initial_env.copy()
         
         # Prepare port mappings and add port environment variables
         port_mappings = {}
-        for container_port, description in runtime_image.exposed_ports.items():
+        for container_port, description in sandbox_spec.exposed_ports.items():
             host_port = self._find_unused_port()
             port_mappings[container_port] = host_port
             # Add port as environment variable
@@ -234,13 +234,13 @@ class DockerRuntimeContainerService(RuntimeContainerService):
         # Prepare labels
         labels = {
             "user_id": str(user_id),
-            "runtime_image_id": runtime_image_id,
+            "sandbox_spec_id": sandbox_spec_id,
         }
 
         # TODO: Handle mounts - for now, we'll create a basic volume mount
         volumes = {
             f"openhands-workspace-{container_id}": {
-                "bind": runtime_image.working_dir,
+                "bind": sandbox_spec.working_dir,
                 "mode": "rw"
             }
         }
@@ -248,13 +248,13 @@ class DockerRuntimeContainerService(RuntimeContainerService):
         try:
             # Create and start the container
             container = self._get_client().containers.run(
-                image=runtime_image_id,
-                command=runtime_image.command,
+                image=sandbox_spec_id,
+                command=sandbox_spec.command,
                 name=container_name,
                 environment=env_vars,
                 ports=port_mappings,
                 volumes=volumes,
-                working_dir=runtime_image.working_dir,
+                working_dir=sandbox_spec.working_dir,
                 labels=labels,
                 detach=True,
                 remove=False,
