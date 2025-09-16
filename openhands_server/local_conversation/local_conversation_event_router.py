@@ -40,7 +40,20 @@ async def search_local_conversation_events(
     event_service = await local_conversation_service.get_event_service(conversation_id)
     if event_service is None:
         raise HTTPException(status.HTTP_404_NOT_FOUND)
-    return await event_service.search(page_id, limit)
+    return await event_service.search_events(page_id, limit)
+
+
+@router.get("/count", responses={
+    404: {"description": "Conversation not found"}
+})
+async def count_local_conversation_events(
+    conversation_id: UUID,
+) -> int:
+    """ Count local conversation events """
+    event_service = await local_conversation_service.get_event_service(conversation_id)
+    if event_service is None:
+        raise HTTPException(status.HTTP_404_NOT_FOUND)
+    return await event_service.count_events()
 
 
 @router.get("/{event_id}", responses={

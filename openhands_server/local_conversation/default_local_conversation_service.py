@@ -61,6 +61,10 @@ class DefaultLocalConversationService(LocalConversationService):
             ))
         return LocalConversationPage(items=items)
 
+    async def count_local_conversations(self) -> int:
+        """Count local conversations"""
+        return len(self._conversations)
+
     # Write Methods
 
     async def start_local_conversation(self, request: StartLocalConversationRequest) -> LocalConversationInfo:

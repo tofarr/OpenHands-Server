@@ -21,6 +21,10 @@ class EventService(ABC):
     async def search_events(self, page_id: str | None = None, limit: int = 100) -> EventPage:
         """ Search / List events from a conversation """
 
+    @abstractmethod
+    async def count_events(self) -> int:
+        """ Count events from a conversation """
+
     async def batch_get_events(self, event_ids: list[str]) -> list[EventBase | None]:
         """Get a batch of events given their ids, returning None for any which were not found """
         results = []
