@@ -23,6 +23,10 @@ class LocalConversationService(ABC):
         """Search for local conversations"""
 
     @abstractmethod
+    async def count_local_conversations(self) -> int:
+        """Count local conversations"""
+
+    @abstractmethod
     async def get_local_conversation(self, conversation_id: UUID) -> LocalConversationInfo | None:
         """Get a single local conversation info. Return None if the conversation was not found."""
 

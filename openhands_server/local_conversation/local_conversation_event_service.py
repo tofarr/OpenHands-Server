@@ -63,6 +63,14 @@ class LocalConversationEventService(EventService):
                     
         return EventPage(items=items)
 
+    async def count_events(self) -> int:
+        """Count events from a conversation"""
+        async with self._lock:
+            if not self._conversation:
+                return 0
+            with self._conversation.state as state:
+                return len(state.events)
+
     async def send_message(self, message: Message):
         async with self._lock:
             loop = asyncio.get_running_loop()

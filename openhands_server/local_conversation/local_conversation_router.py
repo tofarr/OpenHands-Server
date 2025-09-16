@@ -30,6 +30,12 @@ async def search_local_conversations(
     return await local_conversation_service.search_local_conversations(page_id, limit)
 
 
+@router.get("/count")
+async def count_local_conversations() -> int:
+    """ Count local conversations """
+    return await local_conversation_service.count_local_conversations()
+
+
 @router.get("/{id}", responses={
     404: {"description": "Item not found"}
 })
